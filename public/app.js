@@ -1,6 +1,21 @@
 import { API_ORIGIN } from "./config.js";
 import { MAX_TRADE, maxShares, orderError } from "./order.js";
 import { renderChart } from "./board.js";
+import {
+  chicken,
+  priceEquation,
+  renderFinale,
+  soundEnabled,
+  toggleSound,
+  unlockSound,
+  playCue,
+} from "./presentation.js";
+import {
+  createTutorial,
+  tutorialTurn,
+  nextTutorialLesson,
+  renderTutorial,
+} from "./tutorial.js";
 const $ = (selector) => document.querySelector(selector);
 const escape = (value) =>
   String(value ?? "").replace(
@@ -28,6 +43,27 @@ let draftState = "saved",
 let draftQueue = Promise.resolve();
 let chartView = "history",
   inspectedRound = null;
+let reveal = null,
+  countedStage = "",
+  mobileChartOpen = false;
+let helpTab = "rules",
+  practice = null,
+  helpPaused = null,
+  helpPauseRequest = null;
+const reducedMotion = () =>
+  matchMedia("(prefers-reduced-motion: reduce)").matches;
+const difficultyName = (value) =>
+  t(
+    { easy: "Easy", normal: "Normal", hard: "Hard" }[value] || "Normal",
+    { easy: "쉬움", normal: "보통", hard: "어려움" }[value] || "보통",
+  );
+const difficultyOptions = (value) =>
+  ["easy", "normal", "hard"]
+    .map(
+      (level) =>
+        `<option value="${level}" ${level === value ? "selected" : ""}>${difficultyName(level)}</option>`,
+    )
+    .join("");
 const joinCode =
   new URL(location.href).searchParams
     .get("room")
@@ -137,6 +173,19 @@ function adopt(next) {
     draftError = "";
   } else if (draftState === "saving" && sameOrder(own().draft, pending))
     draftState = "saved";
+  const recap = next.recaps.at(-1);
+  if (["reveal", "ended"].includes(next.phase) && recap?.resolvedAt) {
+    const key = `${next.code}:${next.match}:${recap.round}`;
+    if (reveal?.key !== key) {
+      const elapsed = Math.max(0, Date.now() + timeOffset - recap.resolvedAt);
+      reveal = {
+        key,
+        stage: reducedMotion() ? 4 : revealStage(elapsed),
+        forced: false,
+      };
+      if (elapsed < 400) playCue("orders");
+    }
+  } else if (next.phase === "planning" || next.phase === "lobby") reveal = null;
   render();
 }
 function connect() {
@@ -258,7 +307,13 @@ async function enter(mode) {
   try {
     const result = await api(
       mode !== "join" ? "/api/rooms" : `/api/rooms/${code}/join`,
-      { name, token, mode, seconds: Number($("#solo-timer")?.value ?? 60) },
+      {
+        name,
+        token,
+        mode,
+        seconds: Number($("#solo-timer")?.value ?? 60),
+        difficulty: $("#solo-difficulty")?.value || "normal",
+      },
     );
     saveSession(result.room.code, token, name);
     adopt(result.room);
@@ -274,25 +329,43 @@ function mascot(extra = "") {
   return `<div class="mascot-crop ${extra}" aria-hidden="true"><img src="/assets/news-card.png" alt=""></div>`;
 }
 function home() {
-  return `<div class="start-layout"><section class="start-board"><div class="eyebrow">${t("THE MARKET IS OPEN", "시장이 열렸어요")}</div><h1>${t("Good news.<br>Bad news.<br>Your move.", "호재인가요?<br>악재인가요?<br>당신의 선택은?")}</h1><p class="intro">${t("Buy, sell, and outthink your friends.<br>A little luck. A lot of chicken.", "친구들과 사고팔며 전략을 펼쳐보세요.<br>약간의 운, 그리고 꼬꼬의 힘!")}</p><div class="start-stocks"><span>🥚 COOP</span><span>⚡ NEST</span><span>☀️ SUN</span><span>✈️ WING</span></div><div class="start-meta"><span>1–4 ${t("players", "명")}</span><span>12 ${t("rounds", "라운드")}</span><span>${t("Private rooms", "친구끼리 즐기는 방")}</span></div></section><section class="entry-panel"><div class="entry-art"><img src="/assets/news-card.png" alt="${t("Yellow chicken reading good and bad market news", "호재와 악재 뉴스를 읽는 노란 꼬꼬")}" width="936" height="1681"></div><div class="entry-form"><h2>${t("Take your seat.", "자리에 앉아주세요.")}</h2><label for="player-name">${t("Your name", "플레이어 이름")}</label><input id="player-name" autocomplete="nickname" maxlength="20" placeholder="${t("e.g. Sunny", "예: 꼬꼬")}" value="${escape(localStorage.getItem("cse-name") || "")}"><button id="create-room" class="primary full">${t("Create a room", "방 만들기")}</button><button id="play-solo" class="secondary full solo-button">${t("Play vs computer", "컴퓨터와 플레이")}</button><div class="home-timer"><label for="solo-timer">${t("Solo timer", "솔로 타이머")}</label><select id="solo-timer"><option value="60">60 ${t("seconds", "초")}</option><option value="120">120 ${t("seconds", "초")}</option><option value="0">${t("No timer", "시간 제한 없음")}</option></select></div>${localStorage.getItem("cse-resume") ? `<button id="resume-table" class="quiet full">${t("Resume previous table", "이전 게임 이어하기")}</button>` : ""}<div class="or">${t("or join your friends", "또는 친구 방에 입장")}</div><label class="sr-only" for="room-code">${t("Room code", "방 코드")}</label><div class="join-row"><input id="room-code" maxlength="6" autocomplete="off" placeholder="${t("ROOM CODE", "방 코드")}" value="${escape(joinCode)}"><button id="join-room" class="secondary">${t("Join", "입장")}</button></div><p class="small">${t("Play solo, or invite friends. No account needed.", "혼자 또는 친구들과. 가입 없이 시작해요.")}</p></div></section></div>`;
+  return `<div class="start-layout"><section class="start-board"><div class="eyebrow">${t("THE MARKET IS OPEN", "시장이 열렸어요")}</div><h1>${t("Good news.<br>Bad news.<br>Your move.", "호재인가요?<br>악재인가요?<br>당신의 선택은?")}</h1><p class="intro">${t("Buy, sell, and outthink your friends.<br>A little luck. A lot of chicken.", "친구들과 사고팔며 전략을 펼쳐보세요.<br>약간의 운, 그리고 꼬꼬의 힘!")}</p><div class="start-stocks"><span>🥚 COOP</span><span>⚡ NEST</span><span>☀️ SUN</span><span>✈️ WING</span></div><div class="start-meta"><span>1–4 ${t("players", "명")}</span><span>12 ${t("rounds", "라운드")}</span><span>${t("Private rooms", "친구끼리 즐기는 방")}</span></div></section><section class="entry-panel"><div class="entry-art"><img src="/assets/news-card.png" alt="${t("Yellow chicken reading good and bad market news", "호재와 악재 뉴스를 읽는 노란 꼬꼬")}" width="936" height="1681"></div><div class="entry-form"><h2>${t("Take your seat.", "자리에 앉아주세요.")}</h2><label for="player-name">${t("Your name", "플레이어 이름")}</label><input id="player-name" autocomplete="nickname" maxlength="20" placeholder="${t("e.g. Sunny", "예: 꼬꼬")}" value="${escape(localStorage.getItem("cse-name") || "")}"><button id="create-room" class="primary full">${t("Create a room", "방 만들기")}</button><button id="play-solo" class="secondary full solo-button">${t("Play vs computer", "컴퓨터와 플레이")}</button><div class="home-timer"><label for="solo-timer">${t("Solo timer", "솔로 타이머")}</label><select id="solo-timer"><option value="60">60 ${t("seconds", "초")}</option><option value="120">120 ${t("seconds", "초")}</option><option value="0">${t("No timer", "시간 제한 없음")}</option></select></div><div class="home-timer"><label for="solo-difficulty">${t("CPU difficulty", "컴퓨터 난이도")}</label><select id="solo-difficulty">${difficultyOptions("normal")}</select></div><button id="practice-button" class="quiet full">${t("Practice tutorial", "연습 튜토리얼")}</button>${localStorage.getItem("cse-resume") ? `<button id="resume-table" class="quiet full">${t("Resume previous table", "이전 게임 이어하기")}</button>` : ""}<div class="or">${t("or join your friends", "또는 친구 방에 입장")}</div><label class="sr-only" for="room-code">${t("Room code", "방 코드")}</label><div class="join-row"><input id="room-code" maxlength="6" autocomplete="off" placeholder="${t("ROOM CODE", "방 코드")}" value="${escape(joinCode)}"><button id="join-room" class="secondary">${t("Join", "입장")}</button></div><p class="small">${t("Play solo, or invite friends. No account needed.", "혼자 또는 친구들과. 가입 없이 시작해요.")}</p></div></section></div>`;
 }
 function lobby() {
   const me = own(),
-    allReady = room.players.length >= 2 && room.players.every((p) => p.ready);
-  return `<div class="lobby-layout"><section class="lobby-main panel"><div class="eyebrow">${t("YOUR PRIVATE TABLE", "우리만의 게임 테이블")}</div><div class="room-heading"><h1>${t("Gather the flock.", "친구들을 모아주세요.")}</h1>${mascot()}</div><div class="room-code-label">${t("ROOM CODE", "방 코드")}</div><div class="code-row"><strong class="room-code">${room.code}</strong><button id="copy-link" class="secondary">${t("Copy invite", "초대 링크 복사")}</button></div><div class="seats">${room.players.map((p, i) => `<div class="seat player-${i}"><span class="avatar">${["🥚", "⚡", "☀️", "✈️"][i]}</span><div><strong>${escape(p.name)} ${p.id === me.id ? `<small>${t("(you)", "(나)")}</small>` : ""}</strong><span>${p.id === room.hostId ? t("Host · ", "방장 · ") : ""}${p.connected ? t("At the table", "접속 중") : t("Reconnecting", "재연결 중")}</span></div><span class="ready-state">${p.ready ? t("READY", "준비 완료") : t("Getting ready", "준비 중")}</span></div>`).join("")}${Array.from({ length: 4 - room.players.length }, () => `<div class="seat empty-seat"><span class="avatar">＋</span><span>${t("A seat for a friend", "친구를 위한 자리")}</span></div>`).join("")}</div><div class="lobby-actions"><button id="ready" class="${me.ready ? "secondary" : "primary"}">${me.ready ? t("Not ready", "준비 취소") : t("I’m ready", "준비 완료")}</button>${me.id === room.hostId ? `<button id="start-game" class="primary" ${!allReady ? "disabled" : ""}>${t("Open the market", "시장 열기")}</button>` : ""}<button id="leave-room" class="quiet">${t("Leave room", "방 나가기")}</button></div><p class="small">${t("Everyone must be ready. At least two players are needed.", "모두 준비하면 시작해요. 최소 2명이 필요해요.")}</p></section><aside class="lobby-aside"><img class="physical-preview" src="/assets/physical-game.png" alt="${t("The original chicken stock-market board game concept", "꼬꼬 주식 보드게임 콘셉트")}"><div class="quick-rules"><h2>${t("A quick briefing", "시작 전 한눈에")}</h2><p>① ${t("Start with 100 coins + 8 shares.", "100코인과 주식 8주로 시작해요.")}</p><p>② ${t("Choose one trade. Keep it secret.", "한 번의 거래를 비밀리에 선택해요.")}</p><p>③ ${t("News + demand + dice move prices.", "뉴스, 수요, 주사위가 가격을 움직여요.")}</p><p>④ ${t("Most wealth after 12 rounds wins.", "12라운드 후 자산이 가장 많으면 승리!")}</p><button class="quiet more-rules">${t("Read all the rules", "전체 규칙 보기")}</button></div></aside></div>`;
+    host = me.id === room.hostId,
+    missing = room.players.filter((p) => !p.ready);
+  const allReady = room.players.length >= 2 && !missing.length;
+  const status =
+    room.players.length < 2
+      ? t(
+          "Waiting for one more player — or add a computer.",
+          "플레이어 1명 또는 컴퓨터를 추가하세요.",
+        )
+      : missing.length
+        ? `${t("Waiting for", "준비 대기:")} ${missing.map((p) => escape(p.name)).join(", ")}`
+        : t(
+            "Everyone is ready. Open the market!",
+            "모두 준비됐어요. 시장을 열어주세요!",
+          );
+  return `<div class="lobby-layout"><section class="lobby-main panel"><div class="eyebrow">${t("YOUR PRIVATE TABLE", "우리만의 게임 테이블")}</div><div class="room-heading"><h1>${t("Gather the flock.", "친구들을 모아주세요.")}</h1>${chicken("neutral", "lobby-chicken")}</div><div class="room-code-label">${t("ROOM CODE", "방 코드")}</div><div class="code-row"><strong class="room-code">${room.code}</strong><button id="copy-link" class="secondary">${t("Copy invite", "초대 링크 복사")}</button></div><div id="lobby-status" class="lobby-status" role="status">${status}</div><div class="seats">${room.players.map((p, i) => `<div class="seat player-${i}">${chicken(p.isComputer ? "clever" : p.ready ? "happy" : "neutral", "seat-chicken")}<div><strong>${escape(p.name)} ${p.id === me.id ? `<small>${t("(you)", "(나)")}</small>` : ""}</strong><span>${p.isComputer ? `${t("Computer", "컴퓨터")} · ${difficultyName(p.difficulty)}` : `${p.id === room.hostId ? t("Host · ", "방장 · ") : ""}${p.connected ? t("At the table", "접속 중") : t("Reconnecting", "재연결 중")}`}</span>${p.isComputer && host ? `<label class="sr-only" for="cpu-level-${p.id}">${escape(p.name)} ${t("difficulty", "난이도")}</label><select id="cpu-level-${p.id}" data-computer-level="${p.id}">${difficultyOptions(p.difficulty)}</select>` : ""}</div><span class="ready-state">${p.ready ? t("READY", "준비 완료") : t("Getting ready", "준비 중")}${p.isComputer && host ? `<button data-remove-computer="${p.id}" class="quiet">${t("Remove", "제거")}</button>` : ""}</span></div>`).join("")}${Array.from({ length: 4 - room.players.length }, () => `<div class="seat empty-seat"><span class="avatar">＋</span><span>${t("A seat for a friend or computer", "친구 또는 컴퓨터 자리")}</span></div>`).join("")}</div>${host && room.players.length < 4 ? `<div class="computer-entry"><label for="lobby-difficulty">${t("Computer difficulty", "컴퓨터 난이도")}</label><select id="lobby-difficulty">${difficultyOptions("normal")}</select><button id="add-computer" class="secondary" ${busy ? "disabled" : ""}>${t("Add computer", "컴퓨터 추가")}</button></div>` : ""}<div class="lobby-actions"><button id="ready" class="${me.ready ? "secondary" : "primary"}">${me.ready ? t("Not ready", "준비 취소") : t("I’m ready", "준비 완료")}</button>${host ? `<button id="start-game" class="primary" ${allReady && !busy ? "" : "disabled"} aria-describedby="lobby-status">${t("Open the market", "시장 열기")}</button>` : ""}<button id="leave-room" class="quiet">${t("Leave room", "방 나가기")}</button></div></section><aside class="lobby-aside"><img class="physical-preview" src="/assets/physical-game.png" alt="${t("The original chicken stock-market board game concept", "꼬꼬 주식 보드게임 콘셉트")}"><div class="quick-rules"><h2>${t("A quick briefing", "시작 전 한눈에")}</h2><p>① ${t("Start with 100 coins + 8 shares.", "100코인과 주식 8주로 시작해요.")}</p><p>② ${t("Choose one trade. Keep it secret.", "한 번의 거래를 비밀리에 선택해요.")}</p><p>③ ${t("News + demand + dice move prices.", "뉴스, 수요, 주사위가 가격을 움직여요.")}</p><p>④ ${t("Most wealth after 12 rounds wins.", "12라운드 후 자산이 가장 많으면 승리!")}</p><button class="quiet more-rules">${t("How to play / practice", "게임 방법 / 연습")}</button></div></aside></div>`;
 }
-function chart() {
+function chart(displayed = visualRoom()) {
   return (
-    renderChart(room, chartView, lang) +
+    renderChart(displayed, chartView, lang) +
     '<div id="chart-inspection" class="chart-inspection" aria-live="polite"></div>'
   );
 }
 function inspectRound(round) {
   if (!room || !$("#chart-inspection")) return;
-  inspectedRound = Number(round);
+  const displayed = visualRoom();
+  inspectedRound = Math.min(
+    Number(round),
+    displayed.stocks[0].history.length - 1,
+  );
   $("#chart-inspection").innerHTML =
     `<strong>${t("Round", "라운드")} ${inspectedRound}</strong>` +
-    room.stocks
+    displayed.stocks
       .map((s) => {
         const value = s.history[inspectedRound],
           change = inspectedRound ? value - s.history[inspectedRound - 1] : 0;
@@ -343,20 +416,35 @@ function eventText(event) {
   };
 }
 function recapPanel(recap) {
-  const news = eventText(recap.event);
+  const news = eventText(recap.event),
+    stage = reveal?.stage ?? 4;
   const settlement = recap.settlements?.find(
     (s) => s.playerId === room.viewerId,
   );
-  const personal = settlement
-    ? `<div class="personal-settlement ${settlement.delta < 0 ? "loss" : "gain"}">${t("Your portfolio", "내 총자산")} <strong>${settlement.delta > 0 ? "+" : ""}${settlement.delta} ${t("coins", "코인")}</strong><span>${settlement.before} → ${settlement.after}</span></div>`
-    : "";
-  return `<section class="recap-panel panel ${room.phase === "reveal" ? "is-reveal" : ""}"><div class="recap-art"><img src="/assets/news-card.png" alt="Good News / Bad News"></div><div class="recap-main"><div class="eyebrow">${t("ROUND", "라운드")} ${recap.round} ${t("RECAP", "결과")}</div><span class="news-badge ${news.positive ? "positive" : "negative"}">${news.badge}</span><h2>${news.heading}</h2><p>${escape(news.body)}</p>${personal}<div class="dice-row">${diceFace(recap.dice[0], "red")}${diceFace(recap.dice[1], "blue")}<span>${t("Market", "시장")} <strong>${recap.market > 0 ? "+" : ""}${recap.market}</strong></span></div><div class="movement-row">${recap.movements.map((m) => `<span style="--stock-color:${room.stocks.find((s) => s.id === m.stock).color}"><b>${room.stocks.find((s) => s.id === m.stock).ticker}</b> ${m.before} → ${m.after}<small>${t("News", "뉴스")} ${m.news > 0 ? "+" : ""}${m.news} · ${t("Demand", "수요")} ${m.demand > 0 ? "+" : ""}${m.demand}${m.delisted ? ` · ${t("DELISTED", "상장폐지")}` : ""}</small></span>`).join("")}</div>${room.phase === "reveal" ? `<button id="skip-reveal" class="secondary" ${readySkip ? "disabled" : ""}>${readySkip ? t("Waiting for friends…", "친구를 기다리는 중…") : t("Ready for next round", "다음 라운드 준비")}</button>` : ""}</div></section>`;
+  const labels = [
+    t("Orders", "주문"),
+    t("News", "뉴스"),
+    t("Dice", "주사위"),
+    t("Prices", "주가"),
+    t("Settlement", "정산"),
+  ];
+  return `<section class="recap-panel panel ${room.phase === "reveal" || stage < 4 ? "is-reveal" : ""}" data-reveal-stage="${stage}" aria-label="${t("Round result", "라운드 결과")}"><div class="recap-art"><img src="/assets/news-card.png" alt="Good News / Bad News"></div><div class="recap-main"><div class="recap-heading"><div class="eyebrow">${t("ROUND", "라운드")} ${recap.round} ${t("RECAP", "결과")}</div>${stage < 4 ? `<button id="skip-animation" class="quiet">${t("Show result now", "바로 결과 보기")}</button>` : ""}</div><ol class="reveal-progress">${labels.map((label, i) => `<li class="${i <= stage ? "complete" : ""}" ${i === stage ? 'aria-current="step"' : ""}>${label}</li>`).join("")}</ol><div class="revealed-orders">${recap.trades.map((tr) => `<div class="revealed-order">${chicken("thoughtful")}<span><b>${escape(tr.name)}</b><strong>${tr.action === "hold" ? t("HOLD", "관망") : `${t(tr.action.toUpperCase(), tr.action === "buy" ? "매수" : "매도")} ${tr.quantity} ${room.stocks.find((s) => s.id === tr.stock).ticker} @ ${tr.price}`}${tr.protection ? " · 🍗" : ""}</strong></span></div>`).join("")}</div><div class="reveal-news" ${stage < 1 ? "hidden" : ""}><div class="news-story">${chicken(news.positive ? "happy" : "worried")}<div><span class="news-badge ${news.positive ? "positive" : "negative"}">${news.badge}</span><h2>${news.heading}</h2><p>${escape(news.body)}</p></div></div></div><div class="dice-row reveal-dice" ${stage < 2 ? "hidden" : ""}>${diceFace(recap.dice[0], "red")}${diceFace(recap.dice[1], "blue")}<span>${t("Market", "시장")} <strong>${recap.market > 0 ? "+" : ""}${recap.market}</strong></span></div><div class="movement-row reveal-prices" ${stage < 3 ? "hidden" : ""}>${recap.movements.map((m) => `<div style="--stock-color:${room.stocks.find((s) => s.id === m.stock).color}"><b>${room.stocks.find((s) => s.id === m.stock).ticker}</b>${priceEquation(m, recap.market, lang)}${m.delisted ? `<small>${t("PERMANENTLY DELISTED", "영구 상장폐지")}</small>` : ""}</div>`).join("")}</div><div class="reveal-settlement" ${stage < 4 ? "hidden" : ""}>${settlement ? `<div class="personal-settlement ${settlement.delta < 0 ? "loss" : "gain"}">${t("Your total assets", "내 총자산")} <strong>${settlement.delta > 0 ? "+" : ""}${settlement.delta} ${t("coins", "코인")}</strong><span>${settlement.before} → ${settlement.after}</span></div>` : ""}${recap.trades
+    .filter((tr) => tr.protection)
+    .map(
+      (tr) =>
+        `<p class="protection-settlement">🍗 ${escape(tr.name)} · ${room.stocks.find((s) => s.id === tr.protection).ticker} · ${tr.compensation > 0 ? `${tr.compensation} ${t("coins repaid", "코인 보상")}` : t("No price drop · card spent", "하락 없음 · 카드 소모")}</p>`,
+    )
+    .join(
+      "",
+    )}</div><div id="reveal-announcement" class="sr-only" role="status">${labels[stage]}</div>${room.phase === "reveal" && stage === 4 ? `<button id="skip-reveal" class="secondary" ${readySkip ? "disabled" : ""}>${readySkip ? t("Waiting for friends…", "친구를 기다리는 중…") : t("Ready for next round", "다음 라운드 준비")}</button>` : ""}</div></section>`;
 }
 function tradePanel() {
   const me = own(),
     phase = room.phase === "planning",
     stock = room.stocks.find((s) => s.id === pending.stock);
-  const disabled = !phase || me.locked || busy || connection !== "connected";
+  if (!phase)
+    return `<aside class="trading-panel panel round-wait"><div class="section-heading"><h2>${t(room.phase === "ended" ? "Market closed" : "Round resolving", room.phase === "ended" ? "시장 마감" : "라운드 진행 중")}</h2></div>${chicken(room.phase === "ended" ? "champion" : "thoughtful")}<p>${t(room.phase === "ended" ? "See your final assets and match highlights above." : room.phase === "paused" ? "Your solo table is paused while you practice." : "Your orders are in. Watch the news, dice, and settlement before the next trade.", room.phase === "ended" ? "위에서 최종 자산과 대결 결과를 확인하세요." : room.phase === "paused" ? "연습하는 동안 솔로 테이블은 일시정지돼요." : "주문이 접수됐어요. 다음 거래 전에 뉴스, 주사위, 정산을 확인하세요.")}</p></aside>`;
+  const disabled = me.locked || busy || connection !== "connected";
   const error = orderError(room.stocks, me, pending);
   const max = maxShares(room.stocks, me, pending.action, pending.stock);
   const cost = pending.action === "hold" ? 0 : pending.quantity * stock.price;
@@ -375,6 +463,37 @@ function tradePanel() {
     room.hint === "all"
       ? t("Whole market", "전체 시장")
       : room.stocks.find((s) => s.id === room.hint);
+  const protectedStock = room.stocks.find((s) => s.id === pending.protection);
+  const protectedShares = protectedStock
+    ? me.holdings[protectedStock.id] +
+      (pending.stock === protectedStock.id
+        ? pending.action === "buy"
+          ? pending.quantity
+          : pending.action === "sell"
+            ? -pending.quantity
+            : 0
+        : 0)
+    : 0;
+  const actionReasons = [];
+  if (!maxShares(room.stocks, me, "sell", stock.id))
+    actionReasons.push(
+      t(
+        `SELL unavailable: you own ${me.holdings[stock.id]} shares.`,
+        `매도 불가: 보유 ${me.holdings[stock.id]}주.`,
+      ),
+    );
+  if (!maxShares(room.stocks, me, "buy", stock.id))
+    actionReasons.push(
+      stock.delisted
+        ? t(
+            "BUY unavailable: permanently delisted.",
+            "매수 불가: 영구 상장폐지.",
+          )
+        : t(
+            `BUY unavailable: need ${stock.price} coins; you have ${me.cash}.`,
+            `매수 불가: ${stock.price}코인 필요, 보유 ${me.cash}코인.`,
+          ),
+    );
   const status = me.locked
     ? t("LOCKED · final for this round", "확정 · 이번 라운드 최종 주문")
     : draftState === "saving"
@@ -401,7 +520,7 @@ function tradePanel() {
         return `<button data-action="${a}" class="${pending.action === a ? "active" : ""}" aria-pressed="${pending.action === a}" ${disabled || !available ? "disabled" : ""}>${t(a.toUpperCase(), { buy: "매수", sell: "매도", hold: "관망" }[a])}</button>`;
       })
       .join("")}</div>
-    <label for="trade-stock">${t("Stock", "종목")}</label><select id="trade-stock" ${disabled || pending.action === "hold" ? "disabled" : ""}>${room.stocks.map((s) => `<option value="${s.id}" ${pending.stock === s.id ? "selected" : ""} ${s.delisted || (pending.action !== "hold" && maxShares(room.stocks, me, pending.action, s.id) === 0) ? "disabled" : ""}>${escape(stockName(s))} · ${s.price}${pending.action === "sell" ? ` · ${me.holdings[s.id]} ${t("owned", "주 보유")}` : ""}</option>`).join("")}</select>
+    ${actionReasons.length ? `<p class="action-reasons" id="action-reasons">${actionReasons.join(" ")}</p>` : ""}<label for="trade-stock">${t("Stock", "종목")}</label><select id="trade-stock" ${disabled || pending.action === "hold" ? "disabled" : ""}>${room.stocks.map((s) => `<option value="${s.id}" ${pending.stock === s.id ? "selected" : ""} ${s.delisted || (pending.action !== "hold" && maxShares(room.stocks, me, pending.action, s.id) === 0) ? "disabled" : ""}>${escape(stockName(s))} · ${s.price}${pending.action === "sell" ? ` · ${me.holdings[s.id]} ${t("owned", "주 보유")}` : ""}</option>`).join("")}</select>
     <div class="quantity-row"><label>${t("Shares", "수량")}</label><div class="quantity-buttons" role="group" aria-label="${t("Number of shares", "주식 수량")}">${Array.from(
       { length: MAX_TRADE },
       (_, i) => i + 1,
@@ -421,40 +540,47 @@ function tradePanel() {
       )
       .join(
         "",
-      )}</select><p>${t("Repays this round’s price drop on shares held after trading. The card is spent either way.", "거래 후 보유 주식의 하락분을 보상해요. 상승해도 카드는 소모돼요.")}</p></details>
+      )}</select>${protectedStock ? `<p class="protection-preview">${protectedShares} ${t("shares after trading", "주 거래 후 보유")} × 2 ${t("coin drop", "코인 하락")} = <b>${protectedShares * 2} ${t("coins repaid", "코인 보상")}</b><br>${t("Example only; the actual drop is still hidden.", "예시이며 실제 하락분은 아직 비밀이에요.")}</p>` : ""}<p>${t("Repays this round’s price drop on shares held after trading. The card is spent either way.", "거래 후 보유 주식의 하락분을 보상해요. 상승해도 카드는 소모돼요.")}</p></details>
     <div class="order-commit"><div id="draft-status" class="draft-status ${draftState}" role="status">${status}${message ? `<span>${escape(message)}</span>` : ""}</div><div id="saved-order" class="saved-order">${t(room.deadline === null ? "Saved order:" : "At deadline:", room.deadline === null ? "저장된 주문:" : "시간 종료 시:")} <b>${escape(describeOrder(me.draft))}</b></div><button id="lock-order" class="primary full" ${disabled || !valid ? "disabled" : ""}>${me.locked ? t("✓ Order locked", "✓ 주문 확정") : phase ? `${t("Lock", "확정:")} ${t(pending.action.toUpperCase(), { buy: "매수", sell: "매도", hold: "관망" }[pending.action])}${pending.action !== "hold" ? ` ${pending.quantity} ${stock.ticker}` : ""}` : t("Trading paused", "거래 대기")}</button></div>
     ${room.solo && phase ? `<div class="solo-clock"><label for="round-timer-setting">${t("Solo timer", "솔로 타이머")}</label><select id="round-timer-setting" ${disabled ? "disabled" : ""}>${[60, 120, 0].map((seconds) => `<option value="${seconds}" ${(room.roundSeconds ?? 60) === seconds ? "selected" : ""}>${seconds ? `${seconds} ${t("seconds", "초")}` : t("No timer", "시간 제한 없음")}</option>`).join("")}</select></div>` : ""}</aside>`;
 }
 function game() {
   const me = own(),
+    displayed = visualRoom(),
     recap = room.recaps.at(-1),
-    disabled = room.phase !== "planning" || me.locked || busy;
-  return `<div class="game-top"><div><div class="eyebrow">${room.solo ? t("VS CAPTAIN CLUCK", "캡틴 꼬꼬 대전") : t("PRIVATE TABLE", "우리의 테이블")}${room.solo ? "" : ` · ${room.code}`}</div><h1>${room.phase === "ended" ? t("The closing bell.", "장이 마감됐어요.") : t("Make your move.", "당신의 선택은?")}</h1></div><div class="game-toolbar"><div class="round-box"><span>${t("ROUND", "라운드")}</span><strong>${room.round}<small> / 12</small></strong><span id="timer" class="timer"></span></div>${room.solo ? `<button id="restart-solo" class="quiet">${t("Restart", "다시 시작")}</button>` : ""}<button id="exit-menu" class="quiet">${t("Exit to menu", "메뉴로")}</button></div></div>
-    <div class="players-strip" style="--players:${room.players.length}">${room.players.map((p, i) => `<div class="player-card player-${i} ${p.id === me.id ? "you" : ""}"><div class="player-name"><span>${["🥚", "⚡", "☀️", "✈️"][i]}</span><strong>${p.isComputer && lang === "ko" ? "캡틴 꼬꼬" : escape(p.name)}</strong><small>${p.isComputer ? t("CPU", "컴퓨터") : p.id === me.id ? t("YOU", "나") : ""}</small></div><div class="player-value">${p.score}<small>${t("total", "총자산")}</small>${p.lastRoundChange !== null && p.lastRoundChange !== undefined ? `<span class="round-change ${p.lastRoundChange < 0 ? "loss" : "gain"}">${p.lastRoundChange > 0 ? "+" : ""}${p.lastRoundChange} ${t("last round", "지난 라운드")}</span>` : ""}</div><div class="player-meta"><span>${money(p.cash)}</span><span>🍗 × ${p.protections}</span></div><div class="holding-row">${room.stocks.map((s) => `<span style="--stock-color:${s.color}">${s.ticker} <b>${p.holdings[s.id]}</b></span>`).join("")}</div><div class="player-state">${room.phase === "planning" ? (p.locked ? t("✓ Order locked", "✓ 주문 확정") : t("Choosing a trade…", "주문 선택 중…")) : t("At the table", "참여 중")}${!p.connected ? ` · ${t("offline", "연결 끊김")}` : ""}</div></div>`).join("")}</div>
-    ${room.phase === "ended" ? results() : ""}<div class="game-layout"><section class="market panel"><div class="section-heading"><h2>${t("The market board", "주가 보드")}</h2><span>${t("COINS / SHARE", "코인 / 1주")}</span></div>${chart()}<div class="stock-tiles">${room.stocks.map((s) => `<button class="stock-tile ${pending.stock === s.id ? "selected" : ""} ${s.delisted ? "delisted" : ""}" data-stock="${s.id}" style="--stock-color:${s.color}" ${disabled || s.delisted || (pending.action !== "hold" && maxShares(room.stocks, me, pending.action, s.id) === 0) ? "disabled" : ""}><div><span class="stock-icon">${s.icon}</span><b>${s.ticker}</b><strong>${s.price}</strong></div><span>${escape(stockName(s))}</span><small>${s.delisted ? t("DELISTED", "상장폐지") : `${me.holdings[s.id]} ${t("shares owned", "주 보유")}`}</small></button>`).join("")}</div><div class="delisting-band">${t("DELISTING ZONE · 0 COINS", "상장폐지 구역 · 0코인")}</div></section>${tradePanel()}</div>${room.phase === "planning" ? `<div class="mobile-order-bar"><div><strong>${escape(describeOrder(pending))}</strong>${draftState === "saved" ? t("Saved for execution", "체결 준비 완료") : draftState === "saving" ? t("Saving…", "저장 중…") : t("Check your order", "주문을 확인하세요")}</div><button id="mobile-lock-order" class="primary" ${disabled || connection !== "connected" || orderError(room.stocks, me, pending) ? "disabled" : ""}>${me.locked ? t("Locked", "확정됨") : t("Lock order", "주문 확정")}</button></div>` : ""}
-    ${recap ? recapPanel(recap) : `<div class="first-round-note">${mascot("small-mascot")}<p>${t("Watch the news target. Make a trade.<br>Keep your plans to yourself.", "뉴스 대상을 확인하고 거래를 선택하세요.<br>계획은 비밀로!")}</p></div>`}
-    <div class="below-board"><section class="activity panel"><div class="section-heading"><h2>${t("Market journal", "시장 기록")}</h2><span>${room.discards.length} / 30 ${t("cards revealed", "장 공개")}</span></div>${
-      room.recaps.length
-        ? `<details><summary>${t("Show orders and settlements", "주문 및 정산 내역 보기")}</summary>${[
-            ...room.recaps,
-          ]
-            .reverse()
-            .map(
-              (r) =>
-                `<div class="journal-round"><strong>${t("Round", "라운드")} ${r.round} · ${escape(eventText(r.event).body)}</strong>${r.trades.map((tr) => `<p><b>${escape(tr.name)}</b> · ${tr.action === "hold" ? t("HOLD", "관망") : `${t(tr.action.toUpperCase(), tr.action === "buy" ? "매수" : "매도")} ${tr.quantity} ${room.stocks.find((s) => s.id === tr.stock).ticker} @ ${tr.price}`}${tr.protection ? ` · 🍗 ${room.stocks.find((s) => s.id === tr.protection).ticker} +${tr.compensation}` : ""}</p>`).join("")}</div>`,
-            )
-            .join("")}</details>`
-        : `<p class="small">${t("Revealed cards and completed trades appear here.", "공개된 카드와 완료된 거래가 여기에 표시돼요.")}</p>`
-    }</section>${!room.solo ? `<div class="reaction-panel"><span>${t("Table reactions", "테이블 리액션")}</span><div>${["🐔", "🔥", "😱"].map((e) => `<button data-reaction="${e}" aria-label="${t("Send reaction", "리액션 보내기")} ${e}">${e}</button>`).join("")}</div><button id="copy-link" class="quiet">${t("Copy room link", "방 링크 복사")}</button></div>` : ""}</div>`;
+    stage = reveal?.stage ?? 4;
+  const disabled = room.phase !== "planning" || me.locked || busy;
+  const soloOpponent = room.players.find((p) => p.isComputer);
+  return `<div class="game-top"><div><div class="eyebrow">${room.solo ? `${t("VS", "대전")} ${escape(soloOpponent?.name || "Captain Cluck")} · ${difficultyName(soloOpponent?.difficulty)}` : `${t("PRIVATE TABLE", "우리의 테이블")} · ${room.code}`}</div><h1>${room.phase === "ended" ? t("The closing bell.", "장이 마감됐어요.") : t("Make your move.", "당신의 선택은?")}</h1></div><div class="game-toolbar"><div class="round-box"><span>${t("ROUND", "라운드")}</span><strong>${room.round}<small> / 12</small></strong><span id="timer" class="timer"></span></div>${room.solo ? `<button id="restart-solo" class="quiet">${t("Restart", "다시 시작")}</button>` : ""}<button id="exit-menu" class="quiet">${t("Exit to menu", "메뉴로")}</button></div></div>
+    <div class="players-strip" style="--player-count:${room.players.length}">${displayed.players.map((p, i) => `<article class="player-card ${p.id === me.id ? "you" : ""}" style="--player-color:${room.stocks[i].color}"><div class="player-name">${chicken(p.lastRoundChange < 0 ? "worried" : p.lastRoundChange > 0 ? "happy" : p.isComputer ? "clever" : "neutral")}<strong>${escape(p.name)}</strong><span>${p.id === me.id ? t("YOU", "나") : p.isComputer ? "CPU" : ""}</span></div><div class="player-value" data-counter="score-${p.id}">${p.score}<small>${t("total assets", "총자산")}</small>${p.lastRoundChange !== null ? `<span class="round-change ${p.lastRoundChange < 0 ? "loss" : "gain"}">${p.lastRoundChange > 0 ? "+" : ""}${p.lastRoundChange} ${t("last round", "지난 라운드")}</span>` : ""}</div><div class="player-meta" ${stage < 4 ? "hidden" : ""}><span>${p.cash} ${t("cash", "현금")}</span><span>🍗 × ${p.protections}</span></div><details id="holdings-${p.id}" class="player-holdings"><summary>${t("Holdings", "보유 주식")}</summary><div class="holding-row">${room.stocks.map((s) => `<span style="--stock-color:${s.color}">${s.ticker} <b>${p.holdings[s.id]}</b></span>`).join("")}</div></details><p class="player-state">${room.phase === "planning" ? (p.locked ? t("✓ Order locked", "✓ 주문 확정") : t("Choosing a trade…", "주문 선택 중…")) : stage < 4 ? t("Round resolving…", "정산 중…") : t("Round settled", "정산 완료")}</p></article>`).join("")}</div>
+    ${room.phase === "ended" && stage === 4 ? results() : ""}${recap && (room.phase === "reveal" || stage < 4) ? recapPanel(recap) : ""}<div class="game-layout"><section class="market panel"><div class="section-heading market-heading"><h2>${t("The market board", "주가 보드")}</h2><span>${t("COINS / SHARE", "코인 / 1주")}</span></div><div class="stock-tiles">${displayed.stocks.map((s) => `<button class="stock-tile ${pending.stock === s.id ? "selected" : ""} ${s.delisted ? "delisted" : ""}" data-stock="${s.id}" style="--stock-color:${s.color}" ${disabled || s.delisted ? "disabled" : ""}><div><span class="stock-icon">${s.icon}</span><b>${s.ticker}</b><strong data-counter="price-${s.id}">${s.price}</strong></div><span>${escape(stockName(s))}</span><small>${s.delisted ? t("DELISTED", "상장폐지") : `${me.holdings[s.id]} ${t("shares owned", "주 보유")}`}</small></button>`).join("")}</div><details id="market-history" class="market-history" ${matchMedia("(min-width:741px)").matches || mobileChartOpen ? "open" : ""}><summary>${t("Price chart & round history", "주가 차트와 라운드 기록")}</summary>${chart(displayed)}</details>${
+      displayed.stocks.some((s) => s.delisted)
+        ? `<div class="delisting-band">${displayed.stocks
+            .filter((s) => s.delisted)
+            .map((s) => s.ticker)
+            .join(", ")} · ${t("PERMANENTLY DELISTED", "영구 상장폐지")}</div>`
+        : ""
+    }</section>${tradePanel()}</div>${room.phase === "planning" ? `<div class="mobile-order-bar"><div><strong>${escape(describeOrder(pending))}</strong>${draftState === "saved" ? t("Saved for execution", "체결 준비 완료") : draftState === "saving" ? t("Saving…", "저장 중…") : t("Check your order", "주문을 확인하세요")}</div><button id="mobile-lock-order" class="primary" ${disabled || connection !== "connected" || orderError(room.stocks, me, pending) ? "disabled" : ""}>${me.locked ? t("Locked", "확정됨") : t("Lock order", "주문 확정")}</button></div>` : ""}
+    ${recap && room.phase !== "reveal" && stage === 4 && room.phase !== "ended" ? recapPanel(recap) : ""}${journal()}`;
+}
+function journal() {
+  const recaps = reveal?.stage < 4 ? room.recaps.slice(0, -1) : room.recaps;
+  return `<div class="below-board"><section class="activity panel"><div class="section-heading"><h2>${t("Market journal", "시장 기록")}</h2><span>${recaps.length} / 30 ${t("cards revealed", "장 공개")}</span></div>${
+    recaps.length
+      ? `<details><summary>${t("Show orders and settlements", "주문 및 정산 내역 보기")}</summary>${[
+          ...recaps,
+        ]
+          .reverse()
+          .map(
+            (r) =>
+              `<div class="journal-round"><strong>${t("Round", "라운드")} ${r.round} · ${escape(eventText(r.event).body)}</strong>${r.trades.map((tr) => `<p><b>${escape(tr.name)}</b> · ${tr.action === "hold" ? t("HOLD", "관망") : `${t(tr.action.toUpperCase(), tr.action === "buy" ? "매수" : "매도")} ${tr.quantity} ${room.stocks.find((s) => s.id === tr.stock).ticker} @ ${tr.price}`}${tr.protection ? ` · 🍗 ${room.stocks.find((s) => s.id === tr.protection).ticker} +${tr.compensation}` : ""}</p>`).join("")}</div>`,
+          )
+          .join("")}</details>`
+      : `<p class="small">${t("Revealed cards and completed trades appear here.", "공개된 카드와 완료된 거래가 여기에 표시돼요.")}</p>`
+  }</section>${!room.solo ? `<div class="reaction-panel"><span>${t("Table reactions", "테이블 리액션")}</span><div>${["🐔", "🔥", "😱"].map((e) => `<button data-reaction="${e}" aria-label="${t("Send reaction", "리액션 보내기")} ${e}">${e}</button>`).join("")}</div><button id="copy-link" class="quiet">${t("Copy room link", "방 링크 복사")}</button></div>` : ""}</div>`;
 }
 function results() {
-  const sorted = [...room.players].sort((a, b) => b.score - a.score),
-    highest = sorted[0].score;
-  const winners = sorted
-    .filter((p) => p.score === highest)
-    .map((p) => p.name)
-    .join(" & ");
-  return `<section class="results"><div><div class="eyebrow">${t("THE WINNING FLOCK", "오늘의 우승자")}</div><h2>🏆 ${escape(winners)}</h2><p>${t("Cash + final share value. Equal scores share the win.", "현금 + 최종 주식 가치. 동점이면 공동 우승이에요.")}</p></div><ol>${sorted.map((p) => `<li><span>${escape(p.name)}</span><strong>${money(p.score)}</strong></li>`).join("")}</ol>${own().id === room.hostId ? `<button id="rematch" class="primary">${t("Play again", "다시 하기")}</button>` : `<p>${t("Your host can start a rematch.", "방장이 다시 시작할 수 있어요.")}</p>`}</section>`;
+  return renderFinale(room, lang);
 }
 function render() {
   document.documentElement.lang = lang;
@@ -468,11 +594,41 @@ function render() {
     "Fictional stocks. Real friends.",
     "가상의 주식, 진짜 친구들과.",
   );
+  const soundButton = $("#sound-button");
+  soundButton.setAttribute("aria-pressed", String(soundEnabled()));
+  soundButton.setAttribute(
+    "aria-label",
+    t(
+      soundEnabled() ? "Mute game sounds" : "Enable game sounds",
+      soundEnabled() ? "게임 소리 끄기" : "게임 소리 켜기",
+    ),
+  );
+  soundButton.title = t(
+    soundEnabled() ? "Sound on" : "Sound off",
+    soundEnabled() ? "소리 켜짐" : "소리 꺼짐",
+  );
   const focused = document.activeElement,
     focusId = focused?.id;
   const inputState = ["player-name", "room-code"].includes(focusId)
     ? { value: focused.value, start: focused.selectionStart }
     : null;
+  const focusData = focused?.dataset
+    ? [
+        "stock",
+        "action",
+        "quantity",
+        "computerLevel",
+        "removeComputer",
+        "chartView",
+      ].find((key) => focused.dataset[key] !== undefined)
+    : null;
+  const focusSelector =
+    !focusId && focusData
+      ? `[data-${focusData.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase())}="${focused.dataset[focusData]}"]`
+      : null;
+  const openDetails = [
+    ...document.querySelectorAll("#app details[open][id]"),
+  ].map((detail) => detail.id);
   const protectionOpen = $("#protection-choice")?.open;
   const journalOpen = $(".activity details")?.open;
   $("#app").innerHTML = !room
@@ -480,6 +636,10 @@ function render() {
     : room.phase === "lobby"
       ? lobby()
       : game();
+  for (const id of openDetails)
+    if (document.getElementById(id)) document.getElementById(id).open = true;
+  if (focusSelector && $(focusSelector) && !$(focusSelector).disabled)
+    $(focusSelector).focus({ preventScroll: true });
   if (protectionOpen && $("#protection-choice"))
     $("#protection-choice").open = true;
   if (journalOpen && $(".activity details")) $(".activity details").open = true;
@@ -503,13 +663,44 @@ function render() {
   $("#player-name")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") enter(joinCode ? "join" : "create");
   });
+  $("#practice-button")?.addEventListener("click", () => showRules("tutorial"));
+  $("#add-computer")?.addEventListener("click", () =>
+    action("add-computer", { difficulty: $("#lobby-difficulty").value }),
+  );
+  document
+    .querySelectorAll("[data-remove-computer]")
+    .forEach((button) =>
+      button.addEventListener("click", () =>
+        action("remove-computer", { playerId: button.dataset.removeComputer }),
+      ),
+    );
+  document.querySelectorAll("[data-computer-level]").forEach((select) =>
+    select.addEventListener("change", () =>
+      action("computer-level", {
+        playerId: select.dataset.computerLevel,
+        difficulty: select.value,
+      }),
+    ),
+  );
+  $("#finale-exit")?.addEventListener("click", exitToMenu);
+  $("#skip-animation")?.addEventListener("click", () => {
+    reveal.forced = true;
+    reveal.stage = 4;
+    playCue("settlement");
+    render();
+  });
+  $("#market-history")?.addEventListener("toggle", (event) => {
+    if (matchMedia("(max-width:740px)").matches)
+      mobileChartOpen = event.target.open;
+  });
+  animateRevealCounters();
   $("#copy-link")?.addEventListener("click", copyLink);
   $("#ready")?.addEventListener("click", () =>
     action("ready", { ready: !own().ready }),
   );
   $("#start-game")?.addEventListener("click", () => action("start"));
   $("#leave-room")?.addEventListener("click", leave);
-  $(".more-rules")?.addEventListener("click", showRules);
+  $(".more-rules")?.addEventListener("click", () => showRules("rules"));
   $("#rematch")?.addEventListener("click", () => action("rematch"));
   document
     .querySelectorAll("[data-stock]")
@@ -578,8 +769,8 @@ function render() {
   if (room && $(".market-chart"))
     inspectRound(
       inspectedRound === null
-        ? room.stocks[0].history.length - 1
-        : Math.min(inspectedRound, room.stocks[0].history.length - 1),
+        ? visualRoom().stocks[0].history.length - 1
+        : Math.min(inspectedRound, visualRoom().stocks[0].history.length - 1),
     );
   $("#skip-reveal")?.addEventListener("click", async () => {
     readySkip = true;
@@ -708,8 +899,99 @@ async function submitDraft(lock) {
     if (room) render();
   }
 }
+function revealStage(elapsed) {
+  return elapsed < 650
+    ? 0
+    : elapsed < 1250
+      ? 1
+      : elapsed < 1950
+        ? 2
+        : elapsed < 2700
+          ? 3
+          : 4;
+}
+function updateReveal() {
+  if (!reveal || reveal.forced || reveal.stage === 4 || $("#rules-dialog").open)
+    return;
+  const recap = room.recaps.at(-1);
+  const stage = reducedMotion()
+    ? 4
+    : revealStage(Date.now() + timeOffset - recap.resolvedAt);
+  if (stage > reveal.stage) {
+    reveal.stage = stage;
+    playCue(
+      [
+        "orders",
+        "news",
+        "dice",
+        "prices",
+        room.phase === "ended" ? "closing" : "settlement",
+      ][stage],
+      recap.event.effect > 0,
+    );
+    render();
+  }
+}
+function visualRoom() {
+  if (!reveal || reveal.stage >= 4) return room;
+  const recap = room.recaps.at(-1);
+  return {
+    ...room,
+    stocks:
+      reveal.stage >= 3
+        ? room.stocks
+        : room.stocks.map((s) => ({
+            ...s,
+            price: s.history.at(-2) ?? s.price,
+            history: s.history.slice(0, -1),
+            delisted: (s.history.at(-2) ?? s.price) === 0,
+          })),
+    players: room.players.map((p) => ({
+      ...p,
+      score:
+        recap.settlements?.find((settlement) => settlement.playerId === p.id)
+          ?.before ?? p.score,
+      lastRoundChange: null,
+    })),
+  };
+}
+function animateRevealCounters() {
+  if (!reveal || reducedMotion() || ![3, 4].includes(reveal.stage)) return;
+  const key = `${reveal.key}:${reveal.stage}`;
+  if (countedStage === key) return;
+  countedStage = key;
+  const recap = room.recaps.at(-1);
+  const values =
+    reveal.stage === 3
+      ? recap.movements.map((m) => ({
+          id: `price-${m.stock}`,
+          from: m.before,
+          to: m.after,
+        }))
+      : recap.settlements?.map((s) => ({
+          id: `score-${s.playerId}`,
+          from: s.before,
+          to: s.after,
+        })) || [];
+  for (const value of values) {
+    const element = document.querySelector(`[data-counter="${value.id}"]`);
+    if (!element) continue;
+    const target = element.firstChild,
+      start = performance.now();
+    function frame(now) {
+      if (!element.isConnected) return;
+      const progress = Math.min(1, (now - start) / 500);
+      target.textContent = Math.round(
+        value.from + (value.to - value.from) * (1 - (1 - progress) ** 3),
+      );
+      if (progress < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+}
 function tick() {
   if (!room) return;
+  updateReveal();
   const seconds = room.deadline
     ? Math.max(0, Math.ceil((room.deadline - Date.now() - timeOffset) / 1000))
     : null;
@@ -751,6 +1033,9 @@ function clearCurrentTable() {
   connection = "offline";
   lastRoundKey = "";
   inspectedRound = null;
+  reveal = null;
+  countedStage = "";
+  mobileChartOpen = false;
   localStorage.removeItem("cse-session");
   history.replaceState(null, "", "/");
 }
@@ -836,7 +1121,11 @@ async function leave() {
   history.replaceState(null, "", "/");
   render();
 }
-function showRules() {
+function showRules(tab = "rules") {
+  const helpFocus = document.activeElement?.id;
+  if (typeof tab !== "string") tab = "rules";
+  helpTab = tab;
+  if (tab === "tutorial" && !practice) practice = createTutorial();
   $("#rules-title").textContent = t(
     "A little market wisdom.",
     "꼬꼬의 주식 수업",
@@ -892,7 +1181,7 @@ function showRules() {
       ),
     ],
   ];
-  $("#rules-content").innerHTML = rules
+  const ruleMarkup = rules
     .map(
       ([heading, text]) =>
         `<section><h3>${heading}</h3><p>${text}</p></section>`,
@@ -902,9 +1191,83 @@ function showRules() {
     "Got it. Let’s trade.",
     "알겠어요. 거래 시작!",
   );
-  $("#rules-dialog").showModal();
+  $("#rules-content").innerHTML =
+    `<div class="help-tabs" role="group" aria-label="${t("Help section", "도움말 선택")}"><button id="help-rules" aria-pressed="${helpTab === "rules"}">${t("Rules", "규칙")}</button><button id="help-tutorial" aria-pressed="${helpTab === "tutorial"}">${t("Practice tutorial", "연습 튜토리얼")}</button></div><div id="help-body">${helpTab === "tutorial" ? renderTutorial(practice, lang) : ruleMarkup}</div>${helpTab === "tutorial" && room && !room.solo ? `<p class="help-warning">${t("Your live multiplayer table continues while you practice.", "연습 중에도 실전 멀티플레이 타이머는 계속 진행돼요.")}</p>` : ""}`;
+  if (
+    helpFocus &&
+    document.getElementById(helpFocus) &&
+    !document.getElementById(helpFocus).disabled
+  )
+    document.getElementById(helpFocus).focus({ preventScroll: true });
+  $("#help-rules").addEventListener("click", () => showRules("rules"));
+  $("#help-tutorial").addEventListener("click", () => showRules("tutorial"));
+  document.querySelectorAll("[data-tutorial-choice]").forEach((button) =>
+    button.addEventListener("click", () => {
+      tutorialTurn(practice, button.dataset.tutorialChoice);
+      showRules("tutorial");
+      $("#tutorial-next, #tutorial-reset")?.focus({ preventScroll: true });
+      $(".tutorial-outcome")?.scrollIntoView({
+        behavior: reducedMotion() ? "auto" : "smooth",
+        block: "nearest",
+      });
+    }),
+  );
+  $("#tutorial-next")?.addEventListener("click", () => {
+    nextTutorialLesson(practice);
+    showRules("tutorial");
+    $("#rules-content").scrollTop = 0;
+  });
+  $("#tutorial-reset")?.addEventListener("click", () => {
+    practice = createTutorial();
+    showRules("tutorial");
+    $("#rules-content").scrollTop = 0;
+  });
+  if (!$("#rules-dialog").open) $("#rules-dialog").showModal();
+  if (
+    helpTab === "tutorial" &&
+    room?.solo &&
+    ["planning", "reveal"].includes(room.phase) &&
+    !helpPaused
+  ) {
+    helpPaused = { code: room.code, match: room.match, round: room.round };
+    const target = helpPaused;
+    helpPauseRequest = (async () => {
+      if (
+        room.phase === "planning" &&
+        !own().locked &&
+        !sameOrder(own().draft, pending)
+      )
+        await submitDraft(false);
+      if (
+        room?.code === target.code &&
+        room.match === target.match &&
+        ["planning", "reveal"].includes(room.phase)
+      )
+        await action("pause");
+      if (room?.phase !== "paused") helpPaused = null;
+    })();
+  }
 }
-$("#rules-button").addEventListener("click", showRules);
+document.addEventListener("pointerdown", unlockSound, { passive: true });
+document.addEventListener("keydown", unlockSound);
+$("#sound-button").addEventListener("click", () => {
+  toggleSound();
+  render();
+});
+$("#rules-dialog").addEventListener("close", async () => {
+  await helpPauseRequest;
+  helpPauseRequest = null;
+  if (
+    helpPaused &&
+    room?.code === helpPaused.code &&
+    room.match === helpPaused.match &&
+    room.phase === "paused"
+  ) {
+    helpPaused = null;
+    action("resume");
+  } else helpPaused = null;
+});
+$("#rules-button").addEventListener("click", () => showRules("rules"));
 $(".brand").addEventListener("click", (event) => {
   if (room) {
     event.preventDefault();
@@ -918,8 +1281,7 @@ $("#language").addEventListener("click", () => {
   localStorage.setItem("cse-language", lang);
   render();
   if ($("#rules-dialog").open) {
-    $("#rules-dialog").close();
-    showRules();
+    showRules(helpTab);
   }
 });
 document.addEventListener("visibilitychange", () => {

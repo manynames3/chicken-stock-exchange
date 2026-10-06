@@ -84,59 +84,62 @@ const strategies = {
       : { ...HOLD };
   },
 };
-const count = 4000;
+const count = Number(process.env.BALANCE_GAMES || 2000);
 const rows = [];
-for (const [label, strategy] of Object.entries(strategies)) {
-  let wins = 0,
-    ties = 0,
-    sum = 0,
-    cpuSum = 0;
-  for (let seed = 1; seed <= count; seed++) {
-    const market = random(seed),
-      cpu = random(seed ^ 0xa42f3c9);
-    const room = {
-      players: [
-        newPlayer("human", "Strategy", ""),
-        newPlayer("cpu", "Captain Cluck", ""),
-      ],
-    };
-    resetMatch(room, market, 0);
-    while (room.phase !== "ended") {
-      const hint = room.deck[room.discards.length].target; // The public hint, never the effect.
-      room.players[0].draft = validateOrder(
-        room,
-        room.players[0],
-        protection(
+for (const difficulty of ["easy", "normal", "hard"])
+  for (const [label, strategy] of Object.entries(strategies)) {
+    let wins = 0,
+      ties = 0,
+      sum = 0,
+      cpuSum = 0;
+    for (let seed = 1; seed <= count; seed++) {
+      const market = random(seed),
+        cpu = random(seed ^ 0xa42f3c9);
+      const room = {
+        players: [
+          newPlayer("human", "Strategy", ""),
+          newPlayer("cpu", "Captain Cluck", ""),
+        ],
+      };
+      resetMatch(room, market, 0);
+      while (room.phase !== "ended") {
+        const hint = room.deck[room.discards.length].target; // The public hint, never the effect.
+        room.players[0].draft = validateOrder(
           room,
           room.players[0],
-          strategy(room, room.players[0], hint),
-        ),
-      );
-      room.players[1].draft = computerOrder(
-        room.stocks,
-        room.discards,
-        hint,
-        room.players[1],
-        room.round,
-        cpu,
-      );
-      validateOrder(room, room.players[1], room.players[1].draft);
-      resolveRound(room, market, 0);
-      if (room.phase === "reveal") nextRound(room, 0);
+          protection(
+            room,
+            room.players[0],
+            strategy(room, room.players[0], hint),
+          ),
+        );
+        room.players[1].draft = computerOrder(
+          room.stocks,
+          room.discards,
+          hint,
+          room.players[1],
+          room.round,
+          cpu,
+          difficulty,
+          [{ cash: room.players[0].cash, holdings: room.players[0].holdings }],
+        );
+        validateOrder(room, room.players[1], room.players[1].draft);
+        resolveRound(room, market, 0);
+        if (room.phase === "reveal") nextRound(room, 0);
+      }
+      const a = portfolio(room.players[0], room.stocks),
+        b = portfolio(room.players[1], room.stocks);
+      if (a > b) wins++;
+      else if (a === b) ties++;
+      sum += a;
+      cpuSum += b;
     }
-    const a = portfolio(room.players[0], room.stocks),
-      b = portfolio(room.players[1], room.stocks);
-    if (a > b) wins++;
-    else if (a === b) ties++;
-    sum += a;
-    cpuSum += b;
+    const p = wins / count,
+      uncertainty = 1.96 * Math.sqrt((p * (1 - p)) / count) * 100;
+    rows.push(
+      `| ${difficulty} | ${label} | ${(p * 100).toFixed(1)}% ± ${uncertainty.toFixed(1)} | ${((ties / count) * 100).toFixed(1)}% | ${(sum / count).toFixed(1)} | ${(cpuSum / count).toFixed(1)} |`,
+    );
   }
-  const p = wins / count,
-    uncertainty = 1.96 * Math.sqrt((p * (1 - p)) / count) * 100;
-  rows.push(
-    `| ${label} | ${(p * 100).toFixed(1)}% ± ${uncertainty.toFixed(1)} | ${((ties / count) * 100).toFixed(1)}% | ${(sum / count).toFixed(1)} | ${(cpuSum / count).toFixed(1)} |`,
-  );
-}
-const report = `# Reproducible balance probe\n\nRun \`node scripts/balance.mjs\`. Each policy plays ${count.toLocaleString()} seeded, two-player matches against Captain Cluck using the actual settlement rules and current five-share limit. Market and CPU random streams are independent; each policy starts from the same seed set. All policies see only public information. They use remaining protection cards on their largest position from round 10 onward. No policy sees future news effects or opponent orders.\n\n| Policy | Win rate ± approximate 95% margin | Ties | Mean final assets | Mean CPU assets |\n|---|---:|---:|---:|---:|\n${rows.join("\n")}\n\nThis probes a few simple strategies, not optimal play or human enjoyment. Buying creates positive demand, and the bank has unlimited shares, so systematic buying can benefit the buyer’s existing holdings. These simulations can flag a weak computer or concentration incentives; they do not establish multiplayer fairness. No demand, protection, or price rules were changed on the basis of this small policy set. Human playtesting remains necessary.\n`;
+const report = `# Reproducible balance probe\n\nRun \`node scripts/balance.mjs\`. Each policy plays ${count.toLocaleString()} seeded, two-player matches against each of Easy, Normal, and Hard Captain Cluck using the actual settlement rules and current five-share limit. Market and CPU random streams are independent; each policy starts from the same seed set. All policies see only public information. They use remaining protection cards on their largest position from round 10 onward. No policy sees future news effects or opponent orders.\n\n| CPU level | Policy | Win rate ± approximate 95% margin | Ties | Mean final assets | Mean CPU assets |\n|---|---|---:|---:|---:|---:|\n${rows.join("\n")}\n\nThis probes a few simple strategies, not optimal play or human enjoyment. Buying creates positive demand, and the bank has unlimited shares, so systematic buying can benefit the buyer’s existing holdings. These simulations can flag a weak computer or concentration incentives; they do not establish multiplayer fairness. Normal and Hard evaluate legal trades against remaining public news, dice odds, and estimated opponent demand from public positions. Normal sometimes uses a simpler policy; Hard consistently evaluates all quantities and protection choices. These levels change computer choices, not demand, protection, price rules, or hidden information. Opponent-demand estimates are approximations, not access to pending orders. The five-share limit remains provisional pending human comparison with the earlier three-share version. Human playtesting remains necessary.\n`;
 await writeFile("docs/balance.md", report);
 console.log(report);

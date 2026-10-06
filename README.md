@@ -1,6 +1,6 @@
 # 주식 · Chicken Stock Exchange
 
-A bilingual stock-market board game using the supplied chicken artwork and physical prototype. Play solo against **Captain Cluck**, or invite **2–4 friends** to a private room. No account is required.
+A bilingual stock-market board game using the supplied chicken artwork and physical prototype. Play solo against **Captain Cluck**, or create a private table for **2–4 human and computer players**. No account is required.
 
 ## Play
 
@@ -10,6 +10,12 @@ A bilingual stock-market board game using the supplied chicken artwork and physi
 Enter a name and choose **Play vs computer**, or **Create a room** and share the invitation. The 한국어 / English button switches languages. Refreshing on the same browser restores your seat. Seats are device-local; clearing browser storage removes your reconnect token.
 
 Solo games offer 60-second, 120-second, or untimed rounds. **Exit to menu** pauses a solo match and **Resume previous table** restores it, including the saved order. **Restart** begins a fresh match. Multiplayer games continue when a player returns to the menu; their saved seat can reconnect.
+
+**How to play → Practice tutorial** offers three optional, untimed lessons: buying, a price drop, and protection. The scripted tutorial uses the same settlement engine as real matches, never sends live orders, and pauses an active solo table until you close help. Normal games have no automatic onboarding. Multiplayer tables continue while help is open.
+
+Choose **Easy**, **Normal**, or **Hard** before a solo match. In a multiplayer lobby, the host may add, remove, or change a computer’s level; computers are always ready. Waiting and connection labels show exactly who is missing or not ready.
+
+Rounds reveal orders, news, dice, prices, then settlement. Each stock’s equation includes news, demand, dice, and any cap. Chicken reactions, brief counter animations, and an optional sound toggle accompany the result. Reduced-motion preferences skip the staged animation; **Show result now** does the same on demand. Sound is off by default and resumes after a user gesture when enabled. Mobile play puts stock choices and trading before a collapsible chart. The finale compares total assets over time, highlights your best and worst round, shows protection payouts, and offers a rematch.
 
 The trade preview shows exact cash and share changes. Quantity buttons are limited by available cash or owned shares, and selling is disabled for a selected stock with zero holdings. The saved-order box separately shows what will execute; unsaved changes never replace it. Chart lines use distinct patterns and markers, a labeled current-price column, a round inspector, and played/full-round views.
 
@@ -28,7 +34,7 @@ Each of 12 rounds:
 
 The 30-card deck contains all six news effects for each stock and the whole market. Discarded news, cash, and holdings are public. Pending orders, protection choices, and the remaining deck are private. Highest cash plus final share value wins; equal scores share victory. All stocks delisting ends the match early.
 
-Captain Cluck uses only public information: prices, owned shares, the news target, and discarded cards. The computer estimates remaining news effects, preserves a cash reserve, takes profits near the ceiling, and uses protection against exposure. It commits before human orders, with no access to their drafts or future card effects.
+All computer levels use only public information: prices, cash, holdings, the news target, and discarded cards. Easy uses a simple heuristic. Normal mixes that policy with evaluation of legal trades. Hard evaluates quantities and protection against remaining public news, dice odds, estimated opponent demand, and delisting risk. Computers commit before human orders and never see their drafts or future card effects. Difficulty changes their decisions, not the rules.
 
 ## Run locally
 
@@ -48,16 +54,18 @@ npm test
 npm run test:integration
 node scripts/browser-check.mjs
 node scripts/order-regression.mjs
+node scripts/experience-check.mjs
 node scripts/timer-check.mjs
 node scripts/balance.mjs
 ```
 
 Run the dev server before integration, browser, or deadline checks. Install Chromium for browser verification with `npx playwright install chromium` if needed.
 
-- Unit tests cover shared client/server validation, settlement, protection, caps, delisting, privacy, the deck, match completion, conditional news estimates, and computer legality.
-- Integration tests run full multiplayer and computer matches, authenticated WebSockets, zero-share rejection, reconnect, solo pause/resume/timers/restart, and rematches.
+- Unit tests cover shared client/server validation, settlement, protection, caps, delisting, privacy, the deck, match completion, conditional news estimates, all CPU levels, the isolated tutorial, and finale calculations.
+- Integration tests run full multiplayer and computer matches, authenticated WebSockets, zero-share rejection, reconnect, solo pause/resume/timers/restart, mixed computer lobbies, host permissions, and rematches.
 - Browser checks exercise solo trading, bilingual rules, multiplayer, and responsive widths.
 - The order regression checks unavailable sales, delayed draft requests, exact saved orders, five-share trades, and solo controls.
+- The experience check verifies optional practice, live draft preservation, keyboard focus, mobile layout, staged and reduced-motion reveals, lobby computers, and a full-match finale.
 - The deadline check waits for the real 60-second timeout without an open browser.
 - The seeded simulation writes its reproducible results and limitations to [docs/balance.md](docs/balance.md).
 
@@ -85,16 +93,20 @@ Room creation is limited to 30 rooms per IP per hour. Rooms expire after 24 hour
 
 ## Source map
 
-- `src/rules.js`: rules and public-information computer strategy.
+- `public/game.js`: shared pure settlement rules and public-information computer strategies; `src/rules.js` re-exports them for the authoritative server.
 - `src/worker.js`: API, room persistence, WebSocket delivery, and alarms.
 - `public/app.js`, `public/style.css`: bilingual responsive game UI.
 - `public/order.js`: shared quantity bounds and order validation used by the browser and server.
 - `public/board.js`: chart rendering with accessible round inspection.
-- `public/assets/`: supplied character card and generated physical-game concept.
+- `public/tutorial.js`: isolated practice lessons using the shared engine.
+- `public/presentation.js`: price equations, finale history, character markup, and optional audio.
+- `public/assets/`: supplied character card, generated expression sheet, and physical-game concept.
 - `test/`, `scripts/`: reproducible validation and build scripts.
 
-The five-share limit preserves one stock per round and prevents unlimited position swings. Functional checks and a small seeded balance probe are included; match length and competitive balance still need human playtesting. This is a fictional board game, not a brokerage integration.
+The five-share limit preserves one stock per round and prevents unlimited position swings. Functional checks and a 24,000-match seeded balance probe are included; match length and competitive balance still need human playtesting. This is a fictional board game, not a brokerage integration.
 
 ## Artwork
 
-The original chicken/news card artwork was supplied by the project owner. The physical-game concept was generated from the supplied prototype and character references. These assets are included for this game; no third-party asset license is asserted.
+The original chicken/news card artwork was supplied by the project owner. The physical-game concept was generated from the supplied prototype and character references. The expression sheet was generated with the built-in image-generation tool using the supplied card as a character reference; its prompt and provenance are in [docs/artwork.md](docs/artwork.md). These assets are included for this game; no third-party asset license is asserted.
+
+The remaining human validation is described in [docs/playtest.md](docs/playtest.md). Automated simulations do not establish human enjoyment or multiplayer balance.

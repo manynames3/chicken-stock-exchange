@@ -203,6 +203,72 @@ state = (
   })
 ).room;
 assert.equal(state.players[0].draft.quantity, 5);
+// Mixed human/computer lobby permissions, readiness, complete match and rematch.
+state = (
+  await request("/api/rooms", { name: "Bot host", token: tokens[0] }, null, 201)
+).room;
+code = state.code;
+state = (
+  await request(`/api/rooms/${code}/join`, {
+    name: "Bot guest",
+    token: tokens[1],
+  })
+).room;
+await command(1, { type: "add-computer", difficulty: "hard" }, 400);
+await command(0, { type: "add-computer", difficulty: "invalid" }, 400);
+state = (await command(0, { type: "add-computer", difficulty: "hard" })).room;
+const hard = state.players.find((p) => p.isComputer);
+assert.equal(hard.ready, true);
+assert.equal(hard.difficulty, "hard");
+state = (await command(0, { type: "add-computer", difficulty: "normal" })).room;
+assert.equal(state.players.length, 4);
+await command(0, { type: "add-computer", difficulty: "easy" }, 400);
+await command(
+  0,
+  { type: "remove-computer", playerId: state.players[0].id },
+  400,
+);
+state = (
+  await command(0, {
+    type: "computer-level",
+    playerId: hard.id,
+    difficulty: "easy",
+  })
+).room;
+assert.equal(state.players.find((p) => p.id === hard.id).difficulty, "easy");
+state = (
+  await command(0, {
+    type: "computer-level",
+    playerId: hard.id,
+    difficulty: "hard",
+  })
+).room;
+for (let i = 0; i < 2; i++)
+  state = (await command(i, { type: "ready", ready: true })).room;
+state = (await command(0, { type: "start" })).room;
+assert.equal(state.players.filter((p) => p.isComputer && p.locked).length, 2);
+assert.equal(state.players.filter((p) => p.draft).length, 1);
+for (let round = 1; round <= 12; round++) {
+  for (let i = 0; i < 2; i++)
+    state = (
+      await command(i, {
+        type: "draft",
+        lock: true,
+        order: { action: "hold", stock: "coop", quantity: 1 },
+      })
+    ).room;
+  if (state.phase === "ended") break;
+  for (let i = 0; i < 2; i++) state = (await command(i, { type: "skip" })).room;
+}
+assert.equal(state.phase, "ended");
+state = (await command(0, { type: "rematch" })).room;
+assert.equal(state.phase, "lobby");
+assert.equal(state.players.filter((p) => p.isComputer && p.ready).length, 2);
+assert.equal(state.players.find((p) => p.id === hard.id).difficulty, "hard");
+state = (await command(0, { type: "remove-computer", playerId: hard.id })).room;
+assert.equal(state.players.length, 3);
+state = (await command(0, { type: "leave" })).room;
+assert.equal(state.hostId, state.players.find((p) => !p.isComputer).id);
 console.log(
-  `PASS: ${base} — full multiplayer and computer matches, privacy, WebSockets, oversell rejection, solo pause/resume/timers/restart and rematches (${code})`,
+  `PASS: ${base} — full multiplayer and computer matches, privacy, WebSockets, oversell rejection, solo controls, mixed computer lobbies, host permissions and rematches (${code})`,
 );

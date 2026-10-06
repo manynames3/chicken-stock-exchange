@@ -2079,3 +2079,1035 @@ body.is-playing #app {
     padding-bottom: 105px;
   }
 }
+
+/* The SVG viewport clips each expression without distorting the source artwork. */
+.chicken-face {
+  display: inline-block;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  vertical-align: middle;
+}
+.chicken-face svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.round-wait p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.round-wait > .chicken-face {
+  width: 64px;
+  height: 64px;
+}
+.sound-button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+.sound-button[aria-pressed="false"] {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+[hidden] {
+  display: none !important;
+}
+button:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+a:focus-visible {
+  outline: 3px solid #2869b9;
+  outline-offset: 3px;
+}
+#practice-button {
+  margin-top: 12px;
+  font-size: 0.8rem;
+}
+.lobby-chicken {
+  width: 104px;
+  height: 104px;
+}
+.seat-chicken {
+  width: 48px;
+  height: 48px;
+}
+.lobby-status {
+  padding: 12px 14px;
+  margin: 20px 0 12px;
+  border-radius: 8px;
+  background: #fff0ad;
+  border: 1px solid #e0ca78;
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+.seat > div {
+  flex: 1;
+}
+.seat select {
+  width: 120px;
+  padding: 5px 8px;
+  min-height: 32px;
+  font-size: 0.75rem;
+  margin-top: 6px;
+}
+.ready-state > button {
+  display: block;
+  margin: 7px 0 0 auto;
+  font-size: 0.72rem;
+}
+.computer-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 14px;
+  border: 1px dashed #c3b993;
+  border-radius: 8px;
+}
+.computer-entry label {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.computer-entry select {
+  width: 115px;
+  padding: 8px;
+  min-height: 38px;
+}
+.computer-entry button {
+  margin-left: auto;
+  padding: 10px 15px;
+  font-size: 0.85rem;
+}
+.players-strip {
+  grid-template-columns: repeat(var(--player-count, 2), minmax(0, 1fr));
+}
+.player-card {
+  border-top: 4px solid var(--player-color);
+  padding: 10px 14px;
+}
+.player-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.player-name .chicken-face {
+  width: 36px;
+  height: 36px;
+}
+.player-name > strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-name > span:last-child:not(.chicken-face) {
+  margin-left: auto;
+  font-size: 0.65rem;
+  font-weight: 850;
+}
+.player-value {
+  white-space: nowrap;
+}
+.player-value > small {
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+.player-holdings {
+  grid-column: 1;
+}
+.player-holdings summary {
+  cursor: pointer;
+  font-size: 0.7rem;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.player-holdings .holding-row {
+  font-size: 0.72rem;
+  padding-bottom: 4px;
+}
+.player-state {
+  align-self: end;
+}
+.stock-tiles {
+  margin-bottom: 18px;
+}
+.stock-tile {
+  background: linear-gradient(160deg, #fff, #fffdf7);
+  border-top-width: 5px;
+  box-shadow: 0 2px 0 #211d1808;
+}
+.stock-tile.selected {
+  background: #fffbea;
+}
+.market-history {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.market-history > summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 750;
+  margin-bottom: 14px;
+}
+.action-reasons {
+  color: #9b472f;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin: 0 0 12px;
+  background: #fff0de;
+  padding: 8px;
+  border-radius: 6px;
+}
+.protection-preview {
+  background: #fffdf6;
+  border: 1px solid #d8c99e;
+  padding: 9px;
+  border-radius: 6px;
+  font-size: 0.78rem !important;
+  line-height: 1.6;
+}
+.recap-panel {
+  margin-top: 18px;
+  margin-bottom: 20px;
+}
+.recap-main {
+  width: 100%;
+  min-width: 0;
+}
+.recap-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.recap-heading .quiet {
+  font-size: 0.75rem;
+}
+.reveal-progress {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 16px;
+  display: flex;
+  gap: 6px;
+}
+.reveal-progress li {
+  flex: 1;
+  font-size: 0.66rem;
+  font-weight: 750;
+  text-align: center;
+  padding: 6px 3px;
+  border-radius: 5px;
+  background: #ece9df;
+  color: var(--muted);
+}
+.reveal-progress li.complete {
+  background: #ffe785;
+  color: var(--ink);
+}
+.reveal-progress li[aria-current="step"] {
+  box-shadow: inset 0 0 0 1px #d1b342;
+}
+.revealed-orders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+.revealed-order {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #d8c99e;
+  border-radius: 8px;
+  background: #fff9de;
+  box-shadow: 2px 2px 0 #ddd3b4;
+  flex: 1;
+  min-width: 160px;
+}
+.revealed-order .chicken-face {
+  width: 32px;
+  height: 32px;
+}
+.revealed-order b {
+  font-size: 0.72rem;
+  display: block;
+  margin-bottom: 3px;
+}
+.revealed-order strong {
+  font-size: 0.78rem;
+  display: block;
+}
+.news-story {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+.news-story > .chicken-face {
+  width: 75px;
+  height: 75px;
+}
+.news-story h2 {
+  margin: 7px 0 5px;
+}
+.news-story p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.reveal-news,
+.reveal-dice,
+.reveal-prices,
+.reveal-settlement {
+  animation: stage-enter 0.35s ease-out;
+}
+@keyframes stage-enter {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.movement-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.movement-row > div {
+  border-left: 3px solid var(--stock-color);
+  padding: 8px 10px;
+  background: #f6f4eb;
+  border-radius: 0 6px 6px 0;
+  min-width: 0;
+  font-size: 0.8rem;
+}
+.price-equation {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  padding-top: 6px;
+  flex-wrap: wrap;
+}
+.price-equation > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.price-equation small {
+  font-size: 0.63rem;
+  color: var(--muted);
+}
+.price-equation strong {
+  margin-left: 2px;
+}
+.price-equation em {
+  display: block;
+  flex-basis: 100%;
+  font-size: 0.65rem;
+  font-style: normal;
+  color: var(--muted);
+}
+.protection-settlement {
+  font-size: 0.8rem;
+  padding: 9px 11px;
+  background: #fff0ad;
+  border-radius: 6px;
+}
+.recap-art {
+  align-self: stretch;
+}
+.recap-art img {
+  height: 100%;
+  min-height: 210px;
+  object-fit: cover;
+}
+.finale {
+  padding: 24px;
+  margin: 20px 0;
+  border: 2px solid #debf57;
+  background: linear-gradient(140deg, #fff9d7, #fffdf6 65%);
+  position: relative;
+  overflow: hidden;
+}
+.finale-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 20px;
+}
+.finale-heading h2 {
+  font-size: 2.1rem;
+  margin: 8px 0;
+}
+.finale-heading p {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.finale-chicken {
+  width: 118px;
+  height: 118px;
+}
+.finale-ranking {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.finale-ranking li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e0d6b6;
+  border-radius: 8px;
+  background: #fffefa;
+}
+.finale-ranking li > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.9rem;
+}
+.finale-ranking .chicken-face {
+  width: 36px;
+  height: 36px;
+}
+.finale-ranking strong {
+  font-size: 1.35rem;
+  white-space: nowrap;
+}
+.finale-ranking small {
+  font-size: 0.65rem;
+}
+.match-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.match-highlights > div {
+  padding: 14px;
+  border: 1px solid #e0d6b6;
+  border-radius: 8px;
+  background: #fffdfa;
+}
+.match-highlights span {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: block;
+}
+.match-highlights strong {
+  display: block;
+  font-size: 1.2rem;
+  margin: 6px 0;
+}
+.match-highlights small {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+.asset-history {
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid #e0d6b6;
+  background: #fffdfa;
+  border-radius: 8px;
+}
+.asset-history figcaption {
+  font-weight: 750;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+.asset-history svg {
+  display: block;
+  width: 100%;
+  max-height: 270px;
+  font-family: inherit;
+  font-size: 12px;
+  fill: var(--muted);
+}
+.history-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  font-size: 0.78rem;
+}
+.history-legend span {
+  border-left: 3px solid var(--stock-color);
+  padding-left: 7px;
+}
+.asset-history details {
+  margin-top: 14px;
+  font-size: 0.75rem;
+}
+.asset-history summary {
+  cursor: pointer;
+}
+.history-table {
+  overflow-x: auto;
+  margin-top: 10px;
+}
+.history-table table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.78rem;
+}
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.finale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.confetti i {
+  position: absolute;
+  top: -12px;
+  left: calc(var(--i) * 8%);
+  width: 8px;
+  height: 13px;
+  background: var(--confetti-color);
+  opacity: 0;
+  animation: confetti-fall 2.5s ease-out calc(var(--i) * 0.04s) 1;
+}
+@keyframes confetti-fall {
+  10% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(170px) rotate(190deg);
+  }
+}
+#rules-dialog {
+  width: min(740px, calc(100vw - 24px));
+  max-height: 92svh;
+  padding: 22px;
+}
+.help-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+.help-tabs button {
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffdf6;
+  font-weight: 750;
+  min-height: 42px;
+}
+.help-tabs button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--yellow);
+}
+.help-warning {
+  padding: 10px;
+  border-radius: 6px;
+  background: #fff0ad;
+  font-size: 0.78rem;
+}
+.tutorial-board {
+  padding-bottom: 18px;
+}
+.tutorial-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tutorial-heading .chicken-face {
+  width: 72px;
+  height: 72px;
+}
+.tutorial-heading h3 {
+  font-size: 1.3rem;
+  margin: 7px 0;
+}
+.tutorial-heading .eyebrow {
+  font-size: 0.62rem;
+}
+.tutorial-progress {
+  display: flex;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+  margin: 15px 0;
+}
+.tutorial-progress li {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  background: #eae7dd;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+.tutorial-progress li.active {
+  background: #ffe477;
+  color: var(--ink);
+}
+.tutorial-assets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  background: #fff0ad;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+.tutorial-assets b,
+.tutorial-assets strong {
+  display: block;
+  font-size: 1.5rem;
+  margin-top: 4px;
+}
+.asset-explanation {
+  background: #fffaf0;
+  padding: 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+.tutorial-stocks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 15px 0;
+}
+.tutorial-stocks > div {
+  border-top: 3px solid var(--stock-color);
+  background: white;
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.8rem;
+}
+.tutorial-stocks small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  margin-top: 4px;
+}
+.tutorial-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 16px 0;
+}
+.tutorial-choices button {
+  font-size: 0.8rem;
+  padding: 12px;
+}
+.tutorial-outcome {
+  padding: 14px;
+  background: #edf5ea;
+  border: 1px solid #c9dac4;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.tutorial-outcome h4 {
+  margin: 0 0 8px;
+}
+.tutorial-outcome p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+@media (min-width: 741px) {
+  .market-history > summary {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .finale-ranking {
+    grid-template-columns: 1fr;
+  }
+  .match-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 740px) {
+  body.is-playing #app {
+    padding-top: 15px;
+  }
+  .game-top {
+    margin-bottom: 12px;
+  }
+  .game-top h1 {
+    font-size: 1.6rem;
+    margin-top: 5px;
+  }
+  .game-top .eyebrow {
+    font-size: 0.6rem;
+  }
+  .game-toolbar {
+    gap: 6px 9px;
+  }
+  .players-strip {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 3px;
+    scroll-snap-type: x proximity;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .player-card {
+    flex: 0 0 calc(50% - 4px);
+    min-width: 0;
+    display: block;
+    padding: 8px 10px;
+    scroll-snap-align: start;
+  }
+  .player-name {
+    gap: 5px;
+  }
+  .player-name > strong {
+    max-width: 100px;
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+  .player-name .chicken-face {
+    width: 26px;
+    height: 26px;
+  }
+  .player-name > span:last-child:not(.chicken-face) {
+    font-size: 0.55rem;
+  }
+  .player-value {
+    display: block;
+    font-size: 1.35rem;
+    margin: 3px 0;
+  }
+  .player-value > small {
+    font-size: 0.59rem;
+    margin-left: 5px;
+  }
+  .player-value .round-change {
+    font-size: 0.6rem;
+    margin-top: 2px;
+  }
+  .player-meta {
+    gap: 10px;
+    font-size: 0.65rem;
+  }
+  .player-state {
+    text-align: left;
+    font-size: 0.6rem;
+    margin-top: 4px;
+  }
+  .player-holdings summary {
+    padding: 3px 0;
+    font-size: 0.6rem;
+  }
+  .player-holdings .holding-row {
+    font-size: 0.6rem;
+    gap: 5px;
+  }
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .market-heading,
+  .stock-tiles,
+  .trading-panel,
+  .market-history,
+  .delisting-band {
+    width: 100%;
+    min-width: 0;
+  }
+  .market {
+    display: contents;
+  }
+  .market-heading {
+    order: 0;
+    margin: 0;
+    padding: 0 3px;
+  }
+  .market-heading h2 {
+    font-size: 0.95rem;
+  }
+  .market-heading > span {
+    font-size: 0.6rem;
+  }
+  .stock-tiles {
+    order: 1;
+    margin: 0;
+    gap: 8px;
+  }
+  .stock-tile {
+    padding: 8px 11px;
+    min-height: 77px;
+  }
+  .stock-tile strong {
+    font-size: 1.2rem;
+  }
+  .stock-tile > span {
+    font-size: 0.72rem;
+  }
+  .stock-tile small {
+    font-size: 0.65rem;
+  }
+  .trading-panel {
+    order: 2;
+    padding: 14px;
+  }
+  .market-history {
+    order: 3;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+  }
+  .market-history > summary {
+    margin: 0;
+    padding: 3px 0;
+  }
+  .market-history[open] > summary {
+    margin-bottom: 14px;
+  }
+  .delisting-band {
+    order: 4;
+    border-radius: 7px;
+  }
+  .trading-panel .news-hint {
+    padding: 9px 11px;
+    margin-bottom: 10px;
+  }
+  .trading-panel .news-hint small {
+    font-size: 0.68rem;
+  }
+  .action-tabs {
+    margin-bottom: 10px;
+  }
+  .action-tabs button {
+    min-height: 44px;
+  }
+  .quantity-row {
+    display: block;
+  }
+  .quantity-row > label {
+    display: block;
+    margin-bottom: 7px;
+  }
+  .quantity-buttons {
+    width: 100%;
+  }
+  .quantity-buttons button {
+    flex: 1;
+    width: auto;
+    height: 44px;
+  }
+  .trading-panel .section-heading h2 {
+    font-size: 1.05rem;
+  }
+  .recap-panel {
+    display: block;
+    padding: 14px;
+  }
+  .recap-art {
+    display: none;
+  }
+  .recap-main {
+    padding: 0;
+  }
+  .revealed-orders {
+    gap: 7px;
+  }
+  .revealed-order {
+    min-width: 125px;
+    padding: 7px;
+  }
+  .revealed-order .chicken-face {
+    width: 25px;
+    height: 25px;
+  }
+  .revealed-order b {
+    font-size: 0.66rem;
+  }
+  .revealed-order strong {
+    font-size: 0.7rem;
+  }
+  .reveal-progress li {
+    font-size: 0.59rem;
+  }
+  .news-story {
+    gap: 10px;
+  }
+  .news-story > .chicken-face {
+    width: 58px;
+    height: 58px;
+  }
+  .news-story h2 {
+    font-size: 1.12rem;
+  }
+  .news-story p {
+    font-size: 0.8rem;
+  }
+  .movement-row {
+    gap: 8px;
+  }
+  .movement-row > div {
+    padding: 7px;
+    font-size: 0.72rem;
+  }
+  .price-equation {
+    gap: 5px;
+    font-size: 0.72rem;
+  }
+  .price-equation small {
+    font-size: 0.52rem;
+  }
+  .finale {
+    padding: 16px;
+  }
+  .finale-heading h2 {
+    font-size: 1.5rem;
+  }
+  .finale-chicken {
+    width: 84px;
+    height: 84px;
+  }
+  .finale-ranking li {
+    padding: 10px;
+  }
+  .match-highlights {
+    gap: 8px;
+  }
+  .match-highlights > div {
+    padding: 10px;
+  }
+  .match-highlights strong {
+    font-size: 1rem;
+  }
+  .asset-history {
+    padding: 10px;
+  }
+  .asset-history svg {
+    font-size: 17px;
+  }
+  .history-legend {
+    font-size: 0.7rem;
+    gap: 8px 14px;
+  }
+  .computer-entry {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 11px;
+  }
+  .computer-entry label {
+    flex-basis: 100%;
+  }
+  .computer-entry button {
+    flex: 1;
+  }
+  .lobby-chicken {
+    width: 82px;
+    height: 82px;
+  }
+  .seat-chicken {
+    width: 38px;
+    height: 38px;
+  }
+  .seat .ready-state {
+    font-size: 0.62rem;
+  }
+  #rules-dialog {
+    padding: 16px;
+  }
+  .tutorial-heading {
+    gap: 9px;
+  }
+  .tutorial-heading .chicken-face {
+    width: 50px;
+    height: 50px;
+  }
+  .tutorial-heading h3 {
+    font-size: 1.08rem;
+  }
+  .tutorial-stocks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tutorial-progress li {
+    padding: 7px 5px;
+    font-size: 0.66rem;
+  }
+  .tutorial-assets {
+    font-size: 0.7rem;
+    padding: 10px;
+  }
+  .tutorial-assets b,
+  .tutorial-assets strong {
+    font-size: 1.3rem;
+  }
+  .help-tabs button {
+    padding: 9px 11px;
+    font-size: 0.8rem;
+  }
+}
+@media (max-width: 360px) {
+  .header-controls {
+    gap: 7px;
+  }
+  .sound-button {
+    width: 29px;
+    min-width: 29px;
+  }
+  .brand {
+    gap: 7px;
+  }
+  .brand > span:last-child {
+    font-size: 0.59rem;
+  }
+  .player-name > strong {
+    max-width: 68px;
+  }
+  .player-name > span:last-child:not(.chicken-face) {
+    display: none;
+  }
+  .price-equation {
+    gap: 4px;
+    font-size: 0.66rem;
+  }
+}
+#rules-dialog[open] {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#rules-dialog .dialog-heading {
+  flex: none;
+}
+#rules-content {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+#rules-done {
+  flex: none;
+  margin-top: 14px;
+}

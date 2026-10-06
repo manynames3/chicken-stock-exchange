@@ -325,3 +325,38 @@ test("solo timer options survive rounds and rematches; multiplayer keeps its dea
   r.solo = false;
   assert.equal(roundDeadline(r, 1000), 61000);
 });
+
+test("every CPU difficulty produces legal public-information orders across varied positions", () => {
+  for (const difficulty of ["easy", "normal", "hard"])
+    for (let i = 0; i < 50; i++) {
+      const r = fixture(),
+        p = r.players[1];
+      p.cash = i * 3;
+      p.protections = i % 3;
+      for (const [j, s] of r.stocks.entries()) {
+        s.price = 1 + ((i * 7 + j * 3) % 30);
+        p.holdings[s.id] = (i + j) % 8;
+      }
+      const random = () => ((i * 19) % 101) / 101;
+      const order = computerOrder(
+        r.stocks,
+        [{ target: "coop", effect: 3 }],
+        i % 2 ? "coop" : "all",
+        p,
+        1 + (i % 12),
+        random,
+        difficulty,
+        [{ cash: r.players[0].cash, holdings: r.players[0].holdings }],
+      );
+      assert.doesNotThrow(() => validateOrder(r, p, order));
+    }
+});
+test("computer difficulty survives match reset and is public without exposing drafts", () => {
+  const r = fixture();
+  r.players[1].isComputer = true;
+  r.players[1].difficulty = "hard";
+  resetMatch(r, tie, 1000);
+  const state = publicRoom(r, "a");
+  assert.equal(state.players[1].difficulty, "hard");
+  assert.equal(state.players[1].draft, undefined);
+});

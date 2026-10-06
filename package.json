@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --port 8787",
-    "test": "node --test test/rules.test.js",
+    "test": "node --test test/*.test.js",
     "test:integration": "node scripts/integration.mjs",
     "build": "node scripts/build.mjs",
     "deploy:server": "wrangler deploy",

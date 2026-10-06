@@ -7,6 +7,7 @@ import {
   nextRound,
   publicRoom,
   roundDeadline,
+  DIFFICULTIES,
 } from "./rules.js";
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -206,6 +207,10 @@ export class GameRoom {
           crypto.randomUUID().replaceAll("-", ""),
         );
         computer.isComputer = true;
+        computer.difficulty = DIFFICULTIES.includes(body.difficulty)
+          ? body.difficulty
+          : "normal";
+        computer.ready = true;
         this.room.players.push(computer);
         this.room.solo = true;
         this.room.roundSeconds = [0, 60, 120].includes(body.seconds)
@@ -295,7 +300,43 @@ export class GameRoom {
   }
   async action(player, body) {
     const r = this.room;
-    if (body.type === "restart" && r.solo && player.id === r.hostId) {
+    if (
+      ["add-computer", "remove-computer", "computer-level"].includes(
+        body.type,
+      ) &&
+      r.phase === "lobby"
+    ) {
+      if (player.id !== r.hostId) throw new Error("HOST_ONLY");
+      if (body.type === "add-computer") {
+        if (r.players.length >= 4) throw new Error("ROOM_FULL");
+        if (!DIFFICULTIES.includes(body.difficulty))
+          throw new Error("INVALID_DIFFICULTY");
+        const names = ["Captain Cluck", "Professor Peep", "Sunny Side"];
+        const name =
+          names.find((name) => !r.players.some((p) => p.name === name)) ||
+          "Computer";
+        const computer = this.player(
+          name,
+          crypto.randomUUID().replaceAll("-", ""),
+        );
+        computer.isComputer = true;
+        computer.ready = true;
+        computer.difficulty = body.difficulty;
+        r.players.push(computer);
+      } else {
+        const computer = r.players.find(
+          (p) => p.id === body.playerId && p.isComputer,
+        );
+        if (!computer) throw new Error("INVALID_COMPUTER");
+        if (body.type === "remove-computer")
+          r.players = r.players.filter((p) => p.id !== computer.id);
+        else {
+          if (!DIFFICULTIES.includes(body.difficulty))
+            throw new Error("INVALID_DIFFICULTY");
+          computer.difficulty = body.difficulty;
+        }
+      }
+    } else if (body.type === "restart" && r.solo && player.id === r.hostId) {
       resetMatch(r, random, Date.now());
     } else if (
       body.type === "timer" &&
@@ -351,14 +392,18 @@ export class GameRoom {
       r.round = 0;
       r.deadline = null;
       r.players.forEach((p) => {
-        p.ready = false;
+        p.ready = Boolean(p.isComputer);
         p.locked = false;
         delete p.skippedRound;
       });
     } else if (body.type === "leave" && r.phase === "lobby") {
       r.players = r.players.filter((p) => p.id !== player.id);
-      if (r.hostId === player.id) r.hostId = r.players[0]?.id;
-      if (!r.players.length) r.expiresAt = Date.now() + 60_000;
+      if (r.hostId === player.id)
+        r.hostId = r.players.find((p) => !p.isComputer)?.id;
+      if (!r.players.some((p) => !p.isComputer)) {
+        r.players = [];
+        r.expiresAt = Date.now() + 60_000;
+      }
     } else throw new Error("INVALID_PHASE");
   }
   webSocketMessage(ws, message) {
