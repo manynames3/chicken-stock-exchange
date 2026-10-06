@@ -16,7 +16,7 @@ export function chicken(mood = "neutral", extra = "") {
     clever: [1280 / 3, 620],
     champion: [2560 / 3, 620],
   }[mood] || [0, 120];
-  return `<span class="chicken-face chicken-${mood} ${extra}" aria-hidden="true"><svg viewBox="${cell[0]} ${cell[1]} ${1280 / 3} 500" focusable="false"><image href="/assets/chicken-expressions.png" width="1280" height="1280"/></svg></span>`;
+  return `<span class="chicken-face chicken-${mood} ${extra}" aria-hidden="true"><svg viewBox="0 0 ${1280 / 3} 500" focusable="false"><svg width="${1280 / 3}" height="500" viewBox="${cell[0]} ${cell[1]} ${1280 / 3} 500" overflow="hidden"><image href="/assets/chicken-expressions.png" width="1280" height="1280"/></svg></svg></span>`;
 }
 const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0");
 export function priceEquation(movement, market, lang = "en") {

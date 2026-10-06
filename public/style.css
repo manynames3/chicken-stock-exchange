@@ -2088,7 +2088,7 @@ body.is-playing #app {
   height: 48px;
   vertical-align: middle;
 }
-.chicken-face svg {
+.chicken-face > svg {
   display: block;
   width: 100%;
   height: 100%;
