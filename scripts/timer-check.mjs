@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+const base = process.env.GAME_TEST_URL || 'http://localhost:8787';
+const token = crypto.randomUUID().replaceAll('-', '');
+let response = await fetch(`${base}/api/rooms`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Timer Check', token, mode: 'solo' }) });
+assert.equal(response.status, 201);
+const { room } = await response.json();
+const order = { action: 'buy', stock: 'coop', quantity: 1, protection: null };
+response = await fetch(`${base}/api/rooms/${room.code}/action`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ type: 'draft', round: 1, match: 1, order }) });
+assert.equal(response.status, 200);
+console.log(`Waiting for the real 60-second server deadline in ${room.code} without an open browser.`);
+await new Promise(resolve => setTimeout(resolve, 62_000));
+response = await fetch(`${base}/api/rooms/${room.code}/state`, { headers: { Authorization: `Bearer ${token}` } });
+const result = (await response.json()).room;
+assert.equal(result.recaps.length, 1);
+assert.equal(result.players[0].holdings.coop, 3);
+assert.equal(result.recaps[0].trades[0].action, 'buy');
+console.log('PASS: disconnected player’s saved draft executed at the server deadline.');

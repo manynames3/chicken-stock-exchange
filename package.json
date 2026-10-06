@@ -1,0 +1,21 @@
+{
+  "name": "chicken-stock-exchange",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "test": "node --test test/rules.test.js",
+    "test:integration": "node scripts/integration.mjs",
+    "build": "node scripts/build.mjs",
+    "deploy:server": "wrangler deploy",
+    "deploy:pages": "wrangler pages deploy dist --project-name chicken-stock-exchange --branch main"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "wrangler": "^4.147.0"
+  }
+}
