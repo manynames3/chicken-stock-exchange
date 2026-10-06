@@ -203,11 +203,31 @@ try {
     () => document.querySelectorAll("[data-remove-computer]").length === 1,
   );
   assert.match(await page.locator(".seats").textContent(), /Hard/);
+  await page.route("**/api/rooms/*/action", async (route) => {
+    if (route.request().postDataJSON().type === "computer-level")
+      await new Promise((resolve) => setTimeout(resolve, 700));
+    await route.continue();
+  });
+  await page.locator("[data-computer-level]").focus();
   await page.locator("[data-computer-level]").selectOption("easy");
+  await page.locator("#ready[disabled]").waitFor();
+  assert.match(
+    await page.locator("#lobby-status").textContent(),
+    /Updating table/,
+  );
   await page.waitForFunction(
     () => document.querySelector("[data-computer-level]").value === "easy",
   );
-  await page.locator("#ready").click();
+  await page.locator("#ready:not([disabled])").waitFor();
+  assert.equal(
+    await page
+      .locator("[data-computer-level]")
+      .evaluate((el) => el === document.activeElement),
+    true,
+    "Keyboard focus survives a pending lobby request",
+  );
+  await page.unroute("**/api/rooms/*/action");
+  await page.locator("#ready:not([disabled])").click();
   await page.locator("#start-game:not([disabled])").waitFor();
   await page.screenshot({
     path: "screenshots/upgraded-lobby.png",
