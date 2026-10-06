@@ -213,9 +213,9 @@ export class GameRoom {
         computer.ready = true;
         this.room.players.push(computer);
         this.room.solo = true;
-        this.room.roundSeconds = [0, 60, 120].includes(body.seconds)
+        this.room.roundSeconds = [0, 30, 60, 120].includes(body.seconds)
           ? body.seconds
-          : 60;
+          : 30;
         resetMatch(this.room, random, Date.now());
       }
       await this.save();
@@ -344,7 +344,7 @@ export class GameRoom {
       r.phase === "planning" &&
       !player.locked
     ) {
-      if (![0, 60, 120].includes(body.seconds))
+      if (![0, 30, 60, 120].includes(body.seconds))
         throw new Error("INVALID_TIMER");
       r.roundSeconds = body.seconds;
       r.deadline = roundDeadline(r, Date.now());

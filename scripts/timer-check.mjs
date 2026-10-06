@@ -8,6 +8,8 @@ let response = await fetch(`${base}/api/rooms`, {
 });
 assert.equal(response.status, 201);
 const { room } = await response.json();
+assert.equal(room.roundSeconds, 30);
+assert.ok(room.deadline - Date.now() > 28000);
 const order = { action: "buy", stock: "coop", quantity: 1, protection: null };
 response = await fetch(`${base}/api/rooms/${room.code}/action`, {
   method: "POST",
@@ -19,9 +21,9 @@ response = await fetch(`${base}/api/rooms/${room.code}/action`, {
 });
 assert.equal(response.status, 200);
 console.log(
-  `Waiting for the real 60-second server deadline in ${room.code} without an open browser.`,
+  `Waiting for the real 30-second server deadline in ${room.code} without an open browser.`,
 );
-await new Promise((resolve) => setTimeout(resolve, 62_000));
+await new Promise((resolve) => setTimeout(resolve, 32_000));
 response = await fetch(`${base}/api/rooms/${room.code}/state`, {
   headers: { Authorization: `Bearer ${token}` },
 });

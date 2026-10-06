@@ -29,9 +29,9 @@ function fixture(event = { target: "coop", effect: -3 }) {
   return room;
 }
 const tie = () => 0.5;
-test("setup has agreed assets and 60-second deadline", () => {
+test("setup has agreed assets and 30-second deadline", () => {
   const r = fixture();
-  assert.equal(r.deadline, 61000);
+  assert.equal(r.deadline, 31000);
   assert.equal(r.round, 1);
   assert.equal(portfolio(r.players[0], r.stocks), 180);
   assert.equal(r.players[0].protections, 2);
@@ -313,6 +313,11 @@ test("recaps and scorecards report actual portfolio changes after settlement", (
 test("solo timer options survive rounds and rematches; multiplayer keeps its deadline", () => {
   const r = fixture();
   r.solo = true;
+  assert.equal(roundDeadline(r, 1000), 31000);
+  r.roundSeconds = 60;
+  assert.equal(roundDeadline(r, 1000), 61000);
+  r.roundSeconds = 30;
+  assert.equal(roundDeadline(r, 1000), 31000);
   r.roundSeconds = 0;
   assert.equal(roundDeadline(r, 1000), null);
   resetMatch(r, tie, 1000);
@@ -323,7 +328,7 @@ test("solo timer options survive rounds and rematches; multiplayer keeps its dea
   r.roundSeconds = 120;
   assert.equal(roundDeadline(r, 1000), 121000);
   r.solo = false;
-  assert.equal(roundDeadline(r, 1000), 61000);
+  assert.equal(roundDeadline(r, 1000), 31000);
 });
 
 test("every CPU difficulty produces legal public-information orders across varied positions", () => {

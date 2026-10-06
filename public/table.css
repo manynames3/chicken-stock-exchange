@@ -961,3 +961,100 @@ body.is-playing #app {
     height: 18px;
   }
 }
+
+/* Keep spendable cash separate from the portfolio total (cash + stocks). */
+body.is-playing .players-strip .player-card {
+  grid-template-rows: auto auto auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 8px;
+}
+body.is-playing .player-name {
+  grid-column: 1 / -1;
+}
+.player-finances {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.player-finances > div {
+  display: flex;
+  flex-direction: column;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #f4f2e9;
+}
+.player-finances .cash-metric {
+  background: #eaf5e9;
+}
+.player-finances small {
+  font-size: .68rem;
+  font-weight: 700;
+  color: #514d43;
+}
+body.is-playing .player-finances strong {
+  text-align: left;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  margin: 2px 0;
+  font-variant-numeric: tabular-nums;
+}
+.player-finances .cash-metric strong {
+  color: #285e39;
+}
+.player-finances .portfolio-metric > span {
+  font-size: .62rem;
+  color: #514d43;
+}
+body.is-playing .player-meta,
+body.is-playing .player-state {
+  grid-row: 3;
+  margin: 0;
+  align-self: center;
+}
+body.is-playing .player-holdings {
+  grid-row: 4;
+}
+body.is-playing .game-toolbar .round-box > #timer,
+body.is-playing #trade-timer {
+  font-size: 1.4rem;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: #332b14;
+  background: #ffeb9b;
+  border: 2px solid #d2ae3f;
+  border-radius: 8px;
+  padding: 5px 10px;
+  min-width: 66px;
+  text-align: center;
+}
+body.is-playing .game-toolbar .round-box > #timer.urgent,
+body.is-playing #trade-timer.urgent {
+  background: #ffe0da;
+  border-color: #b33831;
+  color: #9e2923;
+}
+body.is-playing .game-toolbar .round-box > #timer:not(.counting),
+body.is-playing #trade-timer:not(.counting) {
+  font-size: .72rem;
+}
+@media (max-width: 740px) {
+  .player-finances { gap: 4px; }
+  .player-finances > div { padding: 4px 5px; }
+  .player-finances small { font-size: .6rem; }
+  body.is-playing .player-finances strong { font-size: 1.25rem; }
+  .player-finances .portfolio-metric > span { font-size: .55rem; }
+  body.is-playing .game-toolbar .round-box { flex-wrap: wrap; justify-content: flex-end; }
+  body.is-playing .game-toolbar .round-box > #timer { font-size: 1.25rem; padding: 4px 7px; min-width: 58px; }
+}
+@media (max-width: 740px) {
+  .compact-table .chart-inspection {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: 50px;
+    gap: 4px;
+  }
+  .compact-table .chart-inspection > strong { grid-column: 1 / -1; }
+  .compact-table .chart-inspection > span { white-space: nowrap; }
+}

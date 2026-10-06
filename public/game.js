@@ -34,7 +34,7 @@ export const STOCKS = [
   },
 ];
 export const ROUNDS = 12;
-export const ROUND_MS = 60_000;
+export const ROUND_MS = 30_000;
 export const REVEAL_MS = 8_000;
 export const HOLD = Object.freeze({
   action: "hold",
@@ -216,7 +216,7 @@ export function nextRound(room, now, random = Math.random) {
   prepareComputerOrders(room, random);
 }
 export function roundDeadline(room, now) {
-  const seconds = room.solo ? (room.roundSeconds ?? 60) : 60;
+  const seconds = room.solo ? (room.roundSeconds ?? 30) : 30;
   return seconds === 0 ? null : now + seconds * 1000;
 }
 export function expectedNews(discards, hint, stockId) {
@@ -332,7 +332,7 @@ export function publicRoom(room, viewerId, connected = []) {
     discards,
     recaps,
     solo: Boolean(room.solo),
-    roundSeconds: room.solo ? (room.roundSeconds ?? 60) : 60,
+    roundSeconds: room.solo ? (room.roundSeconds ?? 30) : 30,
     revision: room.revision || 0,
     hint: phase === "planning" ? room.deck[discards.length].target : null,
     serverTime: Date.now(),

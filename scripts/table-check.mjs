@@ -10,6 +10,7 @@ try {
   page.on("pageerror", error => errors.push(error.message));
   await page.goto(base);
   await page.locator("#player-name").fill("Table tester");
+  assert.equal(await page.locator("#solo-timer").inputValue(), "30", "New solo games default to 30 seconds");
   await page.locator("#solo-timer").selectOption("0");
   await page.locator("#play-solo").click();
   await page.locator("#lock-order:not([disabled])").waitFor();
@@ -17,6 +18,9 @@ try {
     const rect = document.querySelector(selector).getBoundingClientRect();
     return [selector, { x: rect.x, y: rect.y, width: rect.width, height: rect.height, bottom: rect.bottom }];
   })));
+  assert.equal(await page.locator(".player-card.you .portfolio-metric strong").textContent(), "$180");
+  assert.equal(await page.locator(".player-card.you .cash-metric strong").textContent(), "$100");
+  assert.match(await page.locator(".player-card.you .portfolio-metric > span").textContent(), /\$80/);
   const before = await bounds();
   for (const rect of Object.values(before)) assert.ok(rect.bottom <= 900, "All desktop panels fit the screen");
   assert.ok(before["#table-market"].x < before["#table-news"].x && before["#table-news"].x < before["#table-trade"].x);
@@ -34,7 +38,7 @@ try {
   await page.locator("#newspaper-dialog[open]").waitFor();
   assert.equal(await page.locator("#expanded-newspaper .newspaper-byline").isVisible(), true);
   assert.equal(await page.locator("#expanded-newspaper .newspaper-reason p").textContent(), await page.locator("#table-news .newspaper-reason p").textContent());
-  assert.equal(await page.locator("#replay-news-sound").count(), 1, "Expanded paper has a distinct replay ID");
+  assert.equal(await page.locator("#replay-news-sound, #replay-expanded-news-sound").count(), 0, "News plays automatically without replay buttons");
   await page.keyboard.press("Escape");
   assert.equal(await page.locator("#newspaper-dialog").getAttribute("open"), null);
   assert.equal(await page.evaluate(() => document.activeElement.id), "expand-newspaper");
@@ -101,6 +105,14 @@ try {
   await page.locator("#next-round-control").click();
   await page.locator("#lock-order:not([disabled])").waitFor();
   assert.deepEqual(await bounds(), protectedBounds);
+  await page.locator("#round-timer-setting").selectOption("30");
+  await page.waitForFunction(() => /^\d+s$/.test(document.querySelector("#timer").textContent));
+  assert.ok(await page.locator("#timer").evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 20));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.screenshot({ path: "screenshots/portfolio-timer-phone.png" });
+  await page.waitForFunction(() => document.querySelector("#timer").classList.contains("urgent"), null, { timeout: 32000 });
+  assert.equal(await page.locator("#trade-timer").getAttribute("class").then(c => c.includes("urgent")), true);
   assert.deepEqual(errors, []);
   console.log("PASS: desktop table fits, stable round phases, news on the main phone/tablet surface without tabs, expanded paper and responsive widths.");
 } finally { await browser.close(); }

@@ -26,7 +26,7 @@ Each player begins with 100 coins, two shares of each of four stocks, and two ro
 Each of 12 rounds:
 
 1. See the upcoming news target. Its direction and magnitude remain secret.
-2. Within 60 seconds (or the solo timer setting), buy or sell 1–5 shares of one stock, or hold. Optionally protect one stock held after trading. Valid drafts are saved; locking is final. All locked players resolve early.
+2. Within 30 seconds (or the solo timer setting), buy or sell 1–5 shares of one stock, or hold. Optionally protect one stock held after trading. Valid drafts are saved; locking is final. All locked players resolve early.
 3. Execute every order at the same pre-news prices. The bank has unlimited shares. No borrowing or short selling.
 4. Reveal news (−3, −2, −1, +1, +2, or +3), add demand (net buys +1, net sells −1, balanced 0), and add the shared dice result (red wins +1, blue wins −1, tie 0).
 5. Clamp prices to 0–30. For protected shares held after trading, pay the actual price decrease multiplied by shares. The protection card is spent even when the price rises.

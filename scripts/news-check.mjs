@@ -98,7 +98,12 @@ try {
     0,
     "Muted news schedules no audio",
   );
-  await page.locator("#replay-news-sound").click();
+  assert.equal(await page.locator("#replay-news-sound").count(), 0);
+  await page.locator("#sound-button").click();
+  await page.locator("#next-round-control").click();
+  await page.locator("#lock-order:not([disabled])").waitFor();
+  await page.locator("#lock-order").click();
+  await page.locator("#next-round-control").waitFor();
   assert.equal(
     await page.locator("#sound-button").getAttribute("aria-pressed"),
     "true",
@@ -203,7 +208,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: bilingual newspaper, immediate results, mobile widths, repeatable sound previews, live replay, immediate mute and future muted rounds.",
+    "PASS: bilingual newspaper, immediate results, mobile widths, repeatable sound previews, automatic news audio, immediate mute and future muted rounds.",
   );
 } finally {
   await browser.close();

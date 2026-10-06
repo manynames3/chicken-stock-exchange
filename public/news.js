@@ -312,7 +312,7 @@ export function renderNewspaper(recap, stocks, lang = "en", { compact = false } 
         <p class="news-effect-note">${t("The amount on the news card is a game rule.", "뉴스 카드의 숫자는 게임 규칙이에요.")}</p>
       </aside>
     </div>
-    <footer class="newspaper-footer"><p>${compact ? t("News + trades + dice = the final price.", "뉴스 + 거래 + 주사위 = 최종 가격.") : t("This is the news effect. Trades and dice also change the final price, so good news can still end with a price drop, and bad news can still end with a rise.", "이것은 뉴스의 효과예요. 거래와 주사위도 최종 가격을 바꾸므로 좋은 뉴스 뒤에도 가격이 내려가거나 나쁜 뉴스 뒤에도 올라갈 수 있어요.")}${active.length < affected.length ? ` ${t("Delisted stocks stay at zero.", "상장폐지된 종목은 0을 유지해요.")}` : ""}</p><button id="replay-news-sound" class="secondary">♪ ${t("Play news sound", "뉴스 효과음 듣기")}</button></footer>`;
+    <footer class="newspaper-footer"><p>${compact ? t("News + trades + dice = the final price.", "뉴스 + 거래 + 주사위 = 최종 가격.") : t("This is the news effect. Trades and dice also change the final price, so good news can still end with a price drop, and bad news can still end with a rise.", "이것은 뉴스의 효과예요. 거래와 주사위도 최종 가격을 바꾸므로 좋은 뉴스 뒤에도 가격이 내려가거나 나쁜 뉴스 뒤에도 올라갈 수 있어요.")}${active.length < affected.length ? ` ${t("Delisted stocks stay at zero.", "상장폐지된 종목은 0을 유지해요.")}` : ""}</p></footer>`;
   return heldPaper(contents, story.positive ? "good-edition" : "bad-edition", lang, compact);
 }
 export function renderWaitingNewspaper(lang = "en", { compact = false } = {}) {
