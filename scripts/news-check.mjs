@@ -142,6 +142,11 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   await preview.goto(base);
+  await preview.evaluate(async () => {
+    const image = new Image();
+    image.src = "/assets/chicken-expressions.png";
+    await image.decode();
+  });
   for (const [edition, event] of [
     ["good", { target: "coop", effect: 3 }],
     ["bad", { target: "wing", effect: -2 }],
