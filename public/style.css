@@ -3111,3 +3111,404 @@ a:focus-visible {
   flex: none;
   margin-top: 14px;
 }
+
+/* The round's newspaper is the main event, with the math underneath. */
+.recap-panel {
+  display: block;
+  padding: 22px;
+  border: 1px solid #c7bea7;
+  background: #faf7ed;
+}
+.recap-main {
+  padding: 0;
+}
+.reveal-news {
+  margin-bottom: 20px;
+}
+.newspaper {
+  color: #29241e;
+  border: 1px solid #c6bea8;
+  padding: 23px;
+  background:
+    repeating-linear-gradient(0deg, #00000002 0 1px, transparent 1px 4px),
+    #fffaf0;
+  box-shadow: 4px 5px 0 #cfc6b345;
+  scroll-margin-top: 24px;
+}
+.newspaper-masthead {
+  text-align: center;
+  border-top: 3px solid currentColor;
+  border-bottom: 4px double currentColor;
+  padding: 9px 0 10px;
+}
+.newspaper-masthead > span {
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+.newspaper-masthead > strong {
+  display: block;
+  font:
+    900 clamp(2rem, 4.4vw, 4.5rem)/1.05 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: -0.065em;
+  margin: 6px 0 10px;
+}
+.newspaper-masthead > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-top: 1px solid #c6bea8;
+  padding-top: 7px;
+}
+.newspaper-ribbon {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #c6bea8;
+  padding: 10px 0;
+  font-size: 0.73rem;
+}
+.newspaper-ribbon b {
+  background: #ffe078;
+  color: #30240f;
+  padding: 5px 9px;
+  border: 1px solid #dbc36c;
+  letter-spacing: 0.07em;
+}
+.bad-edition .newspaper-ribbon b {
+  background: #d9eafa;
+  border-color: #97b6d3;
+  color: #1d3b58;
+}
+.newspaper-ribbon > span {
+  font-family: Georgia, serif;
+  font-style: italic;
+}
+.newspaper-front {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(150px, 1fr) minmax(
+      150px,
+      0.7fr
+    );
+  gap: 22px;
+  align-items: start;
+  padding: 24px 0;
+}
+.newspaper-kicker {
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+.newspaper h2 {
+  font:
+    900 clamp(1.8rem, 3.4vw, 3.3rem)/1.07 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: -0.035em;
+  margin: 0 0 15px;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.newspaper-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 14px;
+  max-width: 36em;
+}
+.newspaper-byline {
+  font-size: 0.67rem;
+  font-style: italic;
+  padding-top: 9px;
+  border-top: 1px solid #d1c7b4;
+}
+.newspaper-picture {
+  margin: 0;
+  border: 1px solid #c7bea7;
+  padding: 10px;
+  background: #f1e8d5;
+}
+.newspaper-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at bottom, #eed99677, transparent 70%);
+}
+.newspaper-chicken {
+  width: 155px;
+  height: 155px;
+  position: relative;
+  z-index: 1;
+}
+.scene-icon {
+  font-size: 2.6rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-14deg);
+}
+.scene-spark {
+  position: absolute;
+  right: 3px;
+  bottom: 15px;
+  font-size: 2.9rem;
+  color: #b57c22;
+}
+.bad-edition .newspaper-picture {
+  background: #e5ebef;
+}
+.bad-edition .newspaper-scene {
+  background: radial-gradient(ellipse at bottom, #b4c6d877, transparent 70%);
+}
+.bad-edition .scene-spark {
+  color: #536c82;
+}
+.newspaper-picture figcaption {
+  font-size: 0.65rem;
+  text-align: center;
+  padding-top: 7px;
+  border-top: 1px solid #c7bea7;
+  line-height: 1.4;
+}
+.newspaper-impact {
+  border-left: 1px solid #c6bea8;
+  padding-left: 19px;
+  text-align: center;
+}
+.newspaper-impact > span {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+.newspaper-impact > strong {
+  display: block;
+  font:
+    900 4.2rem/1.1 Georgia,
+    serif;
+  letter-spacing: -0.04em;
+  margin: 8px 0 0;
+  color: #674b16;
+}
+.bad-edition .newspaper-impact > strong {
+  color: #2f536f;
+}
+.newspaper-impact > b {
+  font-size: 0.75rem;
+}
+.newspaper-impact p {
+  font-size: 0.73rem;
+  line-height: 1.5;
+  margin: 18px 0 9px;
+}
+.newspaper-targets {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.newspaper-targets > span {
+  font-size: 0.7rem;
+  font-weight: 750;
+  padding: 5px 7px;
+  border: 1px solid #ccc1a9;
+  border-top: 3px solid var(--stock-color);
+  background: #fffdf6;
+  white-space: nowrap;
+}
+.newspaper-targets .inactive-target {
+  color: #766f64;
+  background: #ece8df;
+}
+.newspaper-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 4px double #857b68;
+  padding-top: 13px;
+}
+.newspaper-footer p {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 44em;
+}
+.newspaper-footer button {
+  font-size: 0.73rem;
+  padding: 10px 13px;
+  min-height: 44px;
+  flex: none;
+}
+.last-news-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 17px;
+  border: 1px solid #c7bea7;
+  background: #fffaf0;
+  margin-bottom: 18px;
+  border-radius: 7px;
+}
+.last-news-link > span {
+  font:
+    700 0.75rem Georgia,
+    serif;
+}
+.last-news-link > strong {
+  font:
+    700 1.05rem Georgia,
+    serif;
+}
+.last-news-link > b {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+@media (max-width: 1000px) {
+  .newspaper-front {
+    grid-template-columns: minmax(0, 1fr) 160px;
+    gap: 18px;
+  }
+  .newspaper-story {
+    grid-column: 1 / -1;
+  }
+  .newspaper-chicken {
+    width: 140px;
+    height: 140px;
+  }
+  .newspaper-scene {
+    min-height: 155px;
+  }
+  .newspaper-impact {
+    align-self: stretch;
+  }
+}
+@media (max-width: 740px) {
+  .recap-panel {
+    padding: 12px;
+  }
+  .newspaper {
+    padding: 13px;
+    scroll-margin-top: 12px;
+    box-shadow: 2px 3px 0 #cfc6b345;
+  }
+  .newspaper-masthead > strong {
+    font-size: 2.35rem;
+  }
+  .newspaper-masthead > span {
+    font-size: 0.52rem;
+    letter-spacing: 0.13em;
+  }
+  .newspaper-masthead > div {
+    font-size: 0.56rem;
+    text-align: left;
+  }
+  .newspaper-masthead > div > span:last-child {
+    text-align: right;
+  }
+  .newspaper-ribbon {
+    gap: 8px;
+    font-size: 0.62rem;
+  }
+  .newspaper-ribbon > span {
+    max-width: 125px;
+    text-align: right;
+  }
+  .newspaper-front {
+    grid-template-columns: minmax(0, 1fr) minmax(100px, 0.75fr);
+    gap: 14px;
+    padding: 18px 0;
+  }
+  .newspaper h2 {
+    font-size: 1.85rem;
+    margin-bottom: 11px;
+  }
+  .newspaper-kicker {
+    font-size: 0.62rem;
+  }
+  .newspaper-description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .newspaper-byline {
+    font-size: 0.6rem;
+  }
+  .newspaper-picture {
+    padding: 7px;
+  }
+  .newspaper-chicken {
+    width: 108px;
+    height: 108px;
+  }
+  .newspaper-scene {
+    min-height: 130px;
+  }
+  .scene-icon {
+    font-size: 1.8rem;
+  }
+  .scene-spark {
+    font-size: 2rem;
+    bottom: 5px;
+  }
+  .newspaper-picture figcaption {
+    font-size: 0.56rem;
+  }
+  .newspaper-impact {
+    padding-left: 12px;
+  }
+  .newspaper-impact > strong {
+    font-size: 3.7rem;
+  }
+  .newspaper-impact > span {
+    font-size: 0.57rem;
+  }
+  .newspaper-impact > b {
+    font-size: 0.65rem;
+  }
+  .newspaper-impact p {
+    font-size: 0.65rem;
+    margin-top: 12px;
+  }
+  .newspaper-targets > span {
+    font-size: 0.6rem;
+    padding: 4px 5px;
+  }
+  .newspaper-footer {
+    display: block;
+    padding-top: 11px;
+  }
+  .newspaper-footer p {
+    font-size: 0.7rem;
+  }
+  .newspaper-footer button {
+    width: 100%;
+    margin-top: 12px;
+  }
+  .last-news-link {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 9px;
+    padding: 12px;
+  }
+  .last-news-link > span {
+    grid-column: 1 / -1;
+    font-size: 0.64rem;
+  }
+  .last-news-link > strong {
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+  .last-news-link > b {
+    font-size: 0.62rem;
+  }
+}

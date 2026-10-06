@@ -15,7 +15,7 @@ Solo games offer 60-second, 120-second, or untimed rounds. **Exit to menu** paus
 
 Choose **Easy**, **Normal**, or **Hard** before a solo match. In a multiplayer lobby, the host may add, remove, or change a computer’s level; computers are always ready. Waiting and connection labels show exactly who is missing or not ready.
 
-Rounds reveal orders, news, dice, prices, then settlement. Each stock’s equation includes news, demand, dice, and any cap. Chicken reactions, brief counter animations, and an optional sound toggle accompany the result. Reduced-motion preferences skip the staged animation; **Show result now** does the same on demand. Sound is off by default and resumes after a user gesture when enabled. Mobile play puts stock choices and trading before a collapsible chart. The finale compares total assets over time, highlights your best and worst round, shows protection payouts, and offers a rematch.
+Rounds reveal orders, news, dice, prices, then settlement. News takes the lead as a bilingual **Cluck Times** newspaper with 30 playful headlines, a short story, and its exact per-share effect. The news stage lasts three seconds before dice appear. A last-round headline links back to the paper during trading. Optional good-news effects combine a brass fanfare and cartoon clucks; bad news gets a comic trombone slide and squeak. The newspaper can replay the effect and enable sound; muting stops active effects immediately. Each stock’s equation includes news, demand, dice, and any cap. Chicken reactions, brief counter animations, and an optional sound toggle accompany the result. Reduced-motion preferences skip the staged animation; **Show result now** does the same on demand. Sound is off by default and resumes after a user gesture when enabled. Mobile play puts stock choices and trading before a collapsible chart. The finale compares total assets over time, highlights your best and worst round, shows protection payouts, and offers a rematch.
 
 The trade preview shows exact cash and share changes. Quantity buttons are limited by available cash or owned shares, and selling is disabled for a selected stock with zero holdings. The saved-order box separately shows what will execute; unsaved changes never replace it. Chart lines use distinct patterns and markers, a labeled current-price column, a round inspector, and played/full-round views.
 
@@ -55,6 +55,7 @@ npm run test:integration
 node scripts/browser-check.mjs
 node scripts/order-regression.mjs
 node scripts/experience-check.mjs
+node scripts/news-check.mjs
 node scripts/timer-check.mjs
 node scripts/balance.mjs
 ```
@@ -66,6 +67,7 @@ Run the dev server before integration, browser, or deadline checks. Install Chro
 - Browser checks exercise solo trading, bilingual rules, multiplayer, and responsive widths.
 - The order regression checks unavailable sales, delayed draft requests, exact saved orders, five-share trades, and solo controls.
 - The experience check verifies optional practice, live draft preservation, keyboard focus, mobile layout, staged and reduced-motion reveals, lobby computers, and a full-match finale.
+- The news check covers bilingual papers, phone widths, reading time, automatic and replayed effects, immediate mute, and offline waveform headroom. It saves listenable previews in `screenshots/`.
 - The deadline check waits for the real 60-second timeout without an open browser.
 - The seeded simulation writes its reproducible results and limitations to [docs/balance.md](docs/balance.md).
 
@@ -99,7 +101,9 @@ Room creation is limited to 30 rooms per IP per hour. Rooms expire after 24 hour
 - `public/order.js`: shared quantity bounds and order validation used by the browser and server.
 - `public/board.js`: chart rendering with accessible round inspection.
 - `public/tutorial.js`: isolated practice lessons using the shared engine.
-- `public/presentation.js`: price equations, finale history, character markup, and optional audio.
+- `public/presentation.js`: price equations, finale history, and character markup.
+- `public/news.js`: bilingual newspaper editions and playful news stories.
+- `public/sound.js`: optional procedural audio and a shared offline render function.
 - `public/assets/`: supplied character card, generated expression sheet, and physical-game concept.
 - `test/`, `scripts/`: reproducible validation and build scripts.
 

@@ -100,57 +100,10 @@ export function renderFinale(room, lang = "en") {
   const delta = me.score - 180;
   return `<section class="finale panel"><div class="finale-heading"><div><div class="eyebrow">${t("THE CLOSING BELL", "마감 종이 울렸어요")}</div><h2>${winners.some((p) => p.id === me.id) ? t("Your nest egg wins!", "내 자산이 우승했어요!") : t("A new champion!", "새로운 챔피언!")}</h2><p>${winners.map((p) => e(p.name)).join(" & ")} · ${t("Cash + share value", "현금 + 주식 가치")}</p></div>${chicken(winners.some((p) => p.id === me.id) ? "champion" : "thoughtful", "finale-chicken")}<div class="confetti" aria-hidden="true">${Array.from({ length: 12 }, (_, i) => `<i style="--i:${i};--confetti-color:${colors[i % 4]}"></i>`).join("")}</div></div><ol class="finale-ranking">${sorted.map((p, i) => `<li><span>${chicken(p.score === winnerScore ? "champion" : "neutral")}<b>${sorted.findIndex((other) => other.score === p.score) + 1}. ${e(p.name)}</b>${p.id === me.id ? `<small>${t("YOU", "나")}</small>` : ""}</span><strong>${p.score} <small>${t("coins", "코인")}</small></strong></li>`).join("")}</ol><div class="match-highlights"><div><span>${t("Your total return", "내 총자산 변화")}</span><strong class="${delta < 0 ? "loss" : "gain"}">${signed(delta)} ${t("coins", "코인")}</strong><small>180 → ${me.score}</small></div><div><span>${t("Best round", "최고의 라운드")}</span><strong>${stats.best ? signed(stats.best.delta) : 0}</strong><small>${t("Round", "라운드")} ${stats.best?.round || "–"}</small></div><div><span>${t("Biggest setback", "가장 힘든 라운드")}</span><strong>${stats.worst ? signed(stats.worst.delta) : 0}</strong><small>${t("Round", "라운드")} ${stats.worst?.round || "–"}</small></div><div><span>${t("Protection repaid", "보호 카드 보상")}</span><strong>${stats.protection} ${t("coins", "코인")}</strong><small>${t("Chicken had your back", "꼬꼬가 지켜준 자산")}</small></div></div><figure class="asset-history"><figcaption>${t("Assets over the match", "라운드별 총자산")}</figcaption><svg viewBox="0 0 720 205" role="img" aria-label="${t("Comparison of each player’s assets over completed rounds. Exact values are in the table below.", "완료 라운드별 플레이어 총자산 비교. 아래 표에서 정확한 값을 확인하세요.")}">${grid}${paths}<text x="40" y="196">0</text><text x="680" y="196" text-anchor="end">${last}</text></svg><div class="history-legend">${room.players.map((p, i) => `<span style="--stock-color:${colors[i]}">${e(p.name)} · ${p.score}</span>`).join("")}</div><details><summary>${t("Exact values by round", "라운드별 정확한 수치")}</summary><div class="history-table"><table><thead><tr><th>${t("Round", "라운드")}</th>${room.players.map((p) => `<th>${e(p.name)}</th>`).join("")}</tr></thead><tbody>${histories[0].map((point, i) => `<tr><th>${point.round}</th>${histories.map((h) => `<td>${h[i]?.value ?? "–"}</td>`).join("")}</tr>`).join("")}</tbody></table></div></details></figure><div class="finale-actions">${me.id === room.hostId ? `<button id="rematch" class="primary">${t("Play a rematch", "다시 대결하기")}</button>` : `<p>${t("Your host can start a rematch.", "방장이 다시 시작할 수 있어요.")}</p>`}<button id="finale-exit" class="secondary">${t("Return to menu", "메뉴로 돌아가기")}</button></div></section>`;
 }
-let audio;
-export function soundEnabled() {
-  return localStorage.getItem("cse-sound") === "on";
-}
-export function unlockSound() {
-  if (!soundEnabled()) return;
-  try {
-    const Audio = window.AudioContext || window.webkitAudioContext;
-    if (Audio) {
-      audio ||= new Audio();
-      if (audio.state === "suspended") audio.resume().catch(() => {});
-    }
-  } catch {
-    /* Audio is optional. */
-  }
-}
-export function toggleSound() {
-  const enabled = !soundEnabled();
-  localStorage.setItem("cse-sound", enabled ? "on" : "off");
-  if (enabled) {
-    unlockSound();
-    playCue("settlement");
-  }
-  return enabled;
-}
-export function playCue(cue, positive = true) {
-  if (!soundEnabled() || !audio || document.hidden) return;
-  const sequences = {
-    orders: [240, 300],
-    news: positive ? [440, 660] : [330, 220],
-    dice: [180, 240, 160, 280],
-    prices: positive ? [440, 550] : [440, 330],
-    settlement: [440, 550, 660],
-    closing: [440, 550, 660, 880],
-  };
-  try {
-    (sequences[cue] || []).forEach((frequency, i) => {
-      const oscillator = audio.createOscillator(),
-        gain = audio.createGain(),
-        start = audio.currentTime + i * 0.085;
-      oscillator.type = "sine";
-      oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.035, start + 0.008);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
-      oscillator.connect(gain);
-      gain.connect(audio.destination);
-      oscillator.start(start);
-      oscillator.stop(start + 0.14);
-    });
-  } catch {
-    /* Audio is optional. */
-  }
-}
+export {
+  soundEnabled,
+  unlockSound,
+  setSoundEnabled,
+  toggleSound,
+  playCue,
+} from "./sound.js";
