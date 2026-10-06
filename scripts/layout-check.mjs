@@ -66,6 +66,10 @@ try {
   for (const width of [320, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Overflow at ${width}`);
+    assert.ok(await page.locator(".price-equation").evaluateAll(equations => equations.every(equation => {
+      const box = equation.getBoundingClientRect();
+      return [...equation.children].every(term => term.getBoundingClientRect().right <= box.right + 1);
+    })), `Price equation clipped at ${width}`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator('[data-action="buy"]').click();
