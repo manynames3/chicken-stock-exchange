@@ -47,9 +47,7 @@ let chartView = "history",
   inspectedRound = null;
 let reveal = null,
   mobileChartOpen = false;
-let tablePane = "market", seenNewsKey = "";
-const tabbedTable = () => matchMedia("(max-width:1099px)").matches;
-const currentNewsKey = () => room?.recaps.length ? `${room.code}:${room.match}:${room.recaps.at(-1).round}` : "";
+const narrowTable = () => matchMedia("(max-width:1099px)").matches;
 let helpTab = "rules",
   practice = null,
   helpPaused = null,
@@ -398,37 +396,15 @@ function diceFace(value, color) {
 function eventText(event) {
   return newsStory(event, room.stocks, lang);
 }
-function tableTabs() {
-  const unread = currentNewsKey() && currentNewsKey() !== seenNewsKey;
-  return `<nav class="table-tabs" role="tablist" aria-label="${t("Game sections", "게임 화면")}">${["market", "news", "trade"].map(pane => `<button id="tab-${pane}" role="tab" data-table-tab="${pane}" aria-controls="table-${pane}" aria-selected="${pane === tablePane}" tabindex="${pane === tablePane ? 0 : -1}">${t({ market: "Market", news: "News", trade: "Trade" }[pane], { market: "시장", news: "뉴스", trade: "거래" }[pane])}${pane === "news" ? `<span class="new-news-badge" ${unread ? "" : "hidden"}>${t("New!", "새 소식!")}</span>` : ""}</button>`).join("")}</nav>`;
-}
-function syncTablePanes() {
-  if (!$(".compact-table") || !$("#tab-market")) return;
-  if (tabbedTable() && tablePane === "news") seenNewsKey = currentNewsKey();
-  $(".compact-table").dataset.tablePane = tablePane;
-  for (const pane of ["market", "news", "trade"]) {
-    const panel = $(`#table-${pane}`), tab = $(`#tab-${pane}`);
-    panel.hidden = tabbedTable() && tablePane !== pane;
-    panel.setAttribute("role", tabbedTable() ? "tabpanel" : "region");
-    if (tabbedTable()) panel.setAttribute("aria-labelledby", `tab-${pane}`);
-    else panel.removeAttribute("aria-labelledby");
-    tab.setAttribute("aria-selected", String(tablePane === pane));
-    tab.tabIndex = tablePane === pane ? 0 : -1;
-  }
-  const badge = $(".new-news-badge");
-  badge.hidden = !currentNewsKey() || currentNewsKey() === seenNewsKey;
-  sizeTable();
-}
 function sizeTable() {
   const table = $(".compact-table");
   if (!table) return;
+  if (narrowTable()) {
+    table.style.height = "auto";
+    return;
+  }
   const top = table.getBoundingClientRect().top + scrollY;
-  const tabsHeight = tabbedTable() ? $(".table-tabs").getBoundingClientRect().height : 0;
-  table.style.height = `${Math.max(260, Math.min(740, innerHeight - top - tabsHeight - 12))}px`;
-}
-function selectTablePane(pane) {
-  tablePane = pane;
-  syncTablePanes();
+  table.style.height = `${Math.max(260, Math.min(740, innerHeight - top - 12))}px`;
 }
 function refreshExpandedPaper() {
   const recap = room?.recaps.at(-1);
@@ -451,7 +427,7 @@ function compactDice(recap) {
 }
 function recapPanel(recap) {
   const stage = 4;
-  if (!recap) return `<section id="table-news" class="recap-panel panel" aria-label="${t("News and round result", "뉴스와 라운드 결과")}"><div class="recap-main"><div class="recap-heading"><div class="eyebrow">${t("NEWS & ROUND RESULT", "뉴스와 라운드 결과")}</div><span class="recap-status">${t("Waiting for the first trade", "첫 거래를 기다려요")}</span><div class="news-tools"><button id="expand-newspaper" class="quiet">${t("Expand newspaper", "신문 크게 보기")} ↗</button></div></div><div class="news-slot">${renderWaitingNewspaper(lang, { compact: true })}</div><details id="round-details" class="round-details empty-round-details"><summary>${t("How prices move", "주가 변동 규칙")}</summary><h2>${t("What moves the price?", "무엇이 주가를 바꿀까요?")}</h2><p>${t("Old price + news + trades + dice = new price.", "이전 가격 + 뉴스 + 거래 + 주사위 = 새 가격.")}</p><p>${t("The red and blue dice are rolled together. Red higher: all active stocks +1. Blue higher: all active stocks −1. Tie: no change.", "빨강과 파랑 주사위를 함께 굴려요. 빨강이 더 크면 모든 상장 종목 +1, 파랑이 더 크면 −1, 같으면 변동 없어요.")}</p></details></div></section>`;
+  if (!recap) return `<section id="table-news" class="recap-panel panel" aria-label="${t("News and round result", "뉴스와 라운드 결과")}"><div class="recap-main"><div class="recap-heading"><div class="eyebrow">${t("NEWS & ROUND RESULT", "뉴스와 라운드 결과")}</div><span class="recap-status">${t("Waiting for the first trade", "첫 거래를 기다려요")}</span><div class="news-tools"><button id="expand-newspaper" class="quiet">${t("Expand newspaper", "신문 크게 보기")} ↗</button></div></div><div class="table-dice waiting-dice"><strong>${t("🟥 🟦 Dice result appears after the trade", "🟥 🟦 거래 후 주사위 결과가 나와요")}</strong></div><div class="news-slot">${renderWaitingNewspaper(lang, { compact: true })}</div><details id="round-details" class="round-details empty-round-details"><summary>${t("How prices move", "주가 변동 규칙")}</summary><h2>${t("What moves the price?", "무엇이 주가를 바꿀까요?")}</h2><p>${t("Old price + news + trades + dice = new price.", "이전 가격 + 뉴스 + 거래 + 주사위 = 새 가격.")}</p><p>${t("The red and blue dice are rolled together. Red higher: all active stocks +1. Blue higher: all active stocks −1. Tie: no change.", "빨강과 파랑 주사위를 함께 굴려요. 빨강이 더 크면 모든 상장 종목 +1, 파랑이 더 크면 −1, 같으면 변동 없어요.")}</p></details></div></section>`;
   const settlement = recap.settlements?.find(
     (s) => s.playerId === room.viewerId,
   );
@@ -581,7 +557,7 @@ function game() {
   const soloOpponent = room.players.find((p) => p.isComputer);
   return `<div class="game-top"><div><div class="eyebrow">${room.solo ? `${t("VS", "대전")} ${escape(soloOpponent?.name || "Captain Cluck")} · ${difficultyName(soloOpponent?.difficulty)}` : `${t("PRIVATE TABLE", "우리의 테이블")} · ${room.code}`}</div><h1>${t("Good News Bad News", "Good News Bad News")}</h1></div><div class="game-toolbar"><div class="round-box"><span>${t("ROUND", "라운드")}</span><strong>${room.round}<small> / 12</small></strong><span id="timer" class="timer"></span></div>${room.solo ? `<button id="restart-solo" class="quiet">${t("Restart", "다시 시작")}</button>` : ""}<button id="exit-menu" class="quiet">${t("Exit to menu", "메뉴로")}</button></div></div>
     <div class="players-strip" style="--player-count:${room.players.length}">${displayed.players.map((p, i) => `<article class="player-card ${p.id === me.id ? "you" : ""}" style="--player-color:${room.stocks[i].color}"><div class="player-name">${chicken(p.lastRoundChange < 0 ? "worried" : p.lastRoundChange > 0 ? "happy" : p.isComputer ? "clever" : "neutral")}<strong>${escape(p.name)}</strong><span>${p.id === me.id ? t("YOU", "나") : p.isComputer ? "CPU" : ""}</span></div><div class="player-value" data-counter="score-${p.id}">$${p.score}<small>${t("total assets", "총자산")}</small>${p.lastRoundChange !== null ? `<span class="round-change ${p.lastRoundChange < 0 ? "loss" : "gain"}">${p.lastRoundChange > 0 ? "+" : ""}${p.lastRoundChange} ${t("last round", "지난 라운드")}</span>` : `<span class="round-change">${t("Starting assets", "시작 자산")}</span>`}</div><div class="player-meta" ${stage < 4 ? "hidden" : ""}><span>$${p.cash} ${t("cash", "현금")}</span><span>🍗 × ${p.protections}</span></div><div class="player-holdings" aria-label="${t("Shares owned", "보유 주식")} "><div class="holding-row">${room.stocks.map((s) => `<span style="--stock-color:${s.color}"><small>${s.ticker}</small><b>${p.holdings[s.id]}</b></span>`).join("")}</div></div><p class="player-state">${room.phase === "planning" ? (p.locked ? t("✓ Order locked", "✓ 주문 확정") : t("Choosing a trade…", "주문 선택 중…")) : stage < 4 ? t("Round resolving…", "정산 중…") : t("Round settled", "정산 완료")}</p></article>`).join("")}</div>
-${tableTabs()}<div class="game-layout compact-table" data-table-pane="${tablePane}"><section id="table-market" class="market panel" aria-label="${t("Market", "시장")}"><div class="section-heading market-heading"><h2>${t("The market board", "주가 보드")}</h2><span>${t("PRICE · $ / SHARE", "가격 · $ / 1주")}</span></div><div class="stock-tiles">${displayed.stocks.map((s) => `<button class="stock-tile ${pending.stock === s.id ? "selected" : ""} ${s.delisted ? "delisted" : ""}" data-stock="${s.id}" style="--stock-color:${s.color}" ${disabled || s.delisted ? "disabled" : ""}><div><span class="stock-icon">${s.icon}</span><b>${s.ticker}</b><strong data-counter="price-${s.id}">$${s.price}</strong></div><span>${escape(stockName(s))}</span><div class="owned-shares"><b>${me.holdings[s.id]}</b> <span>${t("shares owned", "주 보유")}</span></div>${s.delisted ? `<small>${t("DELISTED", "상장폐지")}</small>` : `<small class="listing-placeholder" aria-hidden="true">&nbsp;</small>`}</button>`).join("")}</div><details id="market-history" class="market-history" ${!tabbedTable() || mobileChartOpen ? "open" : ""}><summary>${t("Price chart & round history", "주가 차트와 라운드 기록")}</summary>${chart(displayed)}</details><div class="delisting-band ${displayed.stocks.some((s) => s.delisted) ? "" : "listing-placeholder"}" ${displayed.stocks.some((s) => s.delisted) ? "" : 'aria-hidden="true"'}>${displayed.stocks.filter((s) => s.delisted).map((s) => s.ticker).join(", ")} · ${t("PERMANENTLY DELISTED", "영구 상장폐지")}</div></section>${recapPanel(recap)}${tradePanel()}</div>
+<div class="game-layout compact-table"><section id="table-market" class="market panel" aria-label="${t("Market", "시장")}"><div class="section-heading market-heading"><h2>${t("The market board", "주가 보드")}</h2><span>${t("PRICE · $ / SHARE", "가격 · $ / 1주")}</span></div><div class="stock-tiles">${displayed.stocks.map((s) => `<button class="stock-tile ${pending.stock === s.id ? "selected" : ""} ${s.delisted ? "delisted" : ""}" data-stock="${s.id}" style="--stock-color:${s.color}" ${disabled || s.delisted ? "disabled" : ""}><div><span class="stock-icon">${s.icon}</span><b>${s.ticker}</b><strong data-counter="price-${s.id}">$${s.price}</strong></div><span>${escape(stockName(s))}</span><div class="owned-shares"><b>${me.holdings[s.id]}</b> <span>${t("shares owned", "주 보유")}</span></div>${s.delisted ? `<small>${t("DELISTED", "상장폐지")}</small>` : `<small class="listing-placeholder" aria-hidden="true">&nbsp;</small>`}</button>`).join("")}</div><details id="market-history" class="market-history" ${!narrowTable() || mobileChartOpen ? "open" : ""}><summary>${t("Price chart & round history", "주가 차트와 라운드 기록")}</summary>${chart(displayed)}</details><div class="delisting-band ${displayed.stocks.some((s) => s.delisted) ? "" : "listing-placeholder"}" ${displayed.stocks.some((s) => s.delisted) ? "" : 'aria-hidden="true"'}>${displayed.stocks.filter((s) => s.delisted).map((s) => s.ticker).join(", ")} · ${t("PERMANENTLY DELISTED", "영구 상장폐지")}</div></section>${recapPanel(recap)}${tradePanel()}</div>
     ${journal()}${room.phase === "ended" ? results() : ""}`;
 }
 function journal() {
@@ -641,7 +617,6 @@ function render() {
         "computerLevel",
         "removeComputer",
         "chartView",
-        "tableTab",
       ].find((key) => focused.dataset[key] !== undefined)
     : null;
   const focusSelector =
@@ -658,7 +633,7 @@ function render() {
     : room.phase === "lobby"
       ? lobby()
       : game();
-  syncTablePanes();
+  sizeTable();
   if ($("#newspaper-dialog").open) refreshExpandedPaper();
   for (const id of openDetails)
     if (document.getElementById(id)) document.getElementById(id).open = true;
@@ -708,23 +683,10 @@ function render() {
   );
   $("#finale-exit")?.addEventListener("click", exitToMenu);
   $("#market-history")?.addEventListener("toggle", (event) => {
-    if (tabbedTable())
+    if (narrowTable())
       mobileChartOpen = event.target.open;
   });
-  document.querySelectorAll("[data-table-tab]").forEach(button => {
-    button.addEventListener("click", () => selectTablePane(button.dataset.tableTab));
-    button.addEventListener("keydown", event => {
-      const panes = ["market", "news", "trade"], index = panes.indexOf(tablePane);
-      const next = { ArrowRight: (index + 1) % 3, ArrowLeft: (index + 2) % 3, Home: 0, End: 2 }[event.key];
-      if (next === undefined) return;
-      event.preventDefault();
-      selectTablePane(panes[next]);
-      document.querySelector(`[data-table-tab="${panes[next]}"]`).focus({ preventScroll: true });
-    });
-  });
   $("#expand-newspaper")?.addEventListener("click", () => {
-    seenNewsKey = currentNewsKey();
-    syncTablePanes();
     refreshExpandedPaper();
     $("#newspaper-dialog").showModal();
   });
@@ -999,8 +961,6 @@ function clearCurrentTable() {
   inspectedRound = null;
   reveal = null;
   mobileChartOpen = false;
-  tablePane = "market";
-  seenNewsKey = "";
   $("#newspaper-dialog").close();
   localStorage.removeItem("cse-session");
   history.replaceState(null, "", "/");
@@ -1242,7 +1202,7 @@ $(".brand").addEventListener("click", (event) => {
 });
 $("#close-rules").addEventListener("click", () => $("#rules-dialog").close());
 $("#close-newspaper").addEventListener("click", () => $("#newspaper-dialog").close());
-window.addEventListener("resize", syncTablePanes);
+window.addEventListener("resize", sizeTable);
 matchMedia("(max-width:1099px)").addEventListener("change", () => {
   if (room) render();
 });

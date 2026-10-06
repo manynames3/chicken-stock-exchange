@@ -77,7 +77,6 @@ await host.locator("#start-game:not([disabled])").waitFor();
 await host.locator("#start-game").click();
 await host.locator(".game-layout").waitFor();
 await guest.locator(".game-layout").waitFor();
-await host.locator("#tab-trade").click();
 await host.locator("#lock-order").click();
 await guest.locator("#lock-order").click();
 await guest.locator("#next-round-control").waitFor();

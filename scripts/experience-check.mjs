@@ -109,10 +109,8 @@ try {
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator("#tab-market").click();
   assert.equal(await page.locator(".stock-tiles").isVisible(), true);
-  assert.equal(await page.locator(".trading-panel").isVisible(), false);
-  await page.locator("#tab-trade").click();
+  assert.equal(await page.locator(".recap-panel").isVisible(), true);
   assert.equal(await page.locator(".trading-panel").isVisible(), true);
   assert.ok((await page.locator(".trading-panel").boundingBox()).width > 350);
   await page.screenshot({

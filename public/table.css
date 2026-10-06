@@ -95,9 +95,6 @@ body.is-playing .player-holdings b {
 body.is-playing .player-holdings small {
   font-size: .55rem;
 }
-.table-tabs {
-  display: none;
-}
 .compact-table {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.18fr) 280px;
@@ -667,45 +664,6 @@ body.is-playing .activity h2 {
   .compact-table > .panel {
     width: 100%;
   }
-  .table-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 8;
-    background: #fffdf5f5;
-    border-top: 1px solid #c8c3b3;
-    box-shadow: 0 -3px 12px #211d180d;
-    padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-  }
-  .table-tabs button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    min-height: 44px;
-    border-radius: 7px;
-    background: #f0ede2;
-    font-size: .85rem;
-    font-weight: 800;
-  }
-  .table-tabs button[aria-selected="true"] {
-    background: var(--ink);
-    color: var(--yellow);
-  }
-  .new-news-badge {
-    background: #ffdb40;
-    color: #211d18;
-    border-radius: 4px;
-    padding: 3px 5px;
-    font-size: .6rem;
-  }
-  .new-news-badge[hidden] {
-    display: none;
-  }
   .compact-table .stock-tile {
     min-height: 100px;
   }
@@ -895,9 +853,6 @@ body.is-playing #app {
   margin: 0;
   font-size: .64rem;
 }
-.table-tabs button {
-  transition: none;
-}
 @media (max-width: 1099px) {
   .news-slot .compact-paper {
     padding-top: 44px;
@@ -905,5 +860,51 @@ body.is-playing #app {
   .compact-paper .reporter-head {
     width: 75px;
     height: 47px;
+  }
+}
+
+/* One continuous table: news is on the main surface at every screen width. */
+@media (max-width: 1099px) {
+  body.is-playing #app {
+    padding-bottom: 24px;
+  }
+  .compact-table {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr);
+    grid-template-areas: "news market" "news trade";
+    grid-template-rows: auto auto;
+    gap: 12px;
+    height: auto;
+    align-items: start;
+  }
+  .compact-table > .panel {
+    height: auto;
+    min-height: 0;
+  }
+  .compact-table .recap-panel {
+    grid-area: news;
+    height: clamp(610px, calc(100dvh - 226px), 740px);
+    position: sticky;
+    top: 12px;
+  }
+  .compact-table .market {
+    grid-area: market;
+  }
+  .compact-table .trading-panel {
+    grid-area: trade;
+    height: 590px;
+  }
+  .compact-table .market-history {
+    margin-bottom: 0;
+  }
+}
+@media (max-width: 740px) {
+  .compact-table {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "news" "market" "trade";
+  }
+  .compact-table .recap-panel {
+    position: relative;
+    top: auto;
   }
 }

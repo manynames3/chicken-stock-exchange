@@ -45,48 +45,47 @@ try {
   await page.screenshot({ path: "screenshots/compact-table-laptop.png" });
   for (const rect of Object.values(await bounds())) assert.ok(rect.bottom <= 768);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator("#tab-trade").click();
+  assert.equal(await page.locator('[role="tab"]').count(), 0, "No section tabs are needed on the main game screen");
+  assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3);
+  await page.evaluate(() => scrollTo(0, 0));
+  const phoneNews = await page.locator("#table-news").boundingBox();
+  const phoneMarket = await page.locator("#table-market").boundingBox();
+  assert.ok(phoneNews.y < phoneMarket.y, "The newspaper comes first on phones");
+  assert.ok(await page.locator("#table-news h2").evaluate(el => el.getBoundingClientRect().bottom < innerHeight), "The news headline is on the main viewport");
+  await page.screenshot({ path: "screenshots/compact-table-phone-news.png" });
   await page.locator('[data-action="buy"]').click();
   await page.locator('[data-quantity="2"]').click();
-  assert.equal(await page.locator("#table-market").isVisible(), false);
+  await page.locator("#lock-order").scrollIntoViewIfNeeded();
+  const phonePositions = () => page.evaluate(() => Object.fromEntries(["#table-news", "#table-market", "#table-trade"].map(selector => {
+    const rect = document.querySelector(selector).getBoundingClientRect();
+    return [selector, { y: rect.y + scrollY, height: rect.height }];
+  })));
+  const phoneBefore = await phonePositions();
+  const scrollBefore = await page.evaluate(() => scrollY);
   await page.locator("#lock-order").click();
   await page.locator("#next-round-control").waitFor();
-  assert.equal(await page.locator(".compact-table").getAttribute("data-table-pane"), "trade", "News never switches the tab automatically");
-  assert.equal(await page.locator(".new-news-badge").isVisible(), true);
-  assert.equal(await page.evaluate(() => scrollY), 0, "News never scrolls the page automatically");
-  await page.locator("#tab-news").click();
-  assert.equal(await page.locator(".new-news-badge").isVisible(), false);
-  const visibility = await page.evaluate(() => {
-    const panel = document.querySelector("#table-news").getBoundingClientRect();
-    const reason = document.querySelector("#table-news .newspaper-reason").getBoundingClientRect();
-    const tabs = document.querySelector(".table-tabs").getBoundingClientRect();
-    return { reasonBottom: reason.bottom, panelBottom: panel.bottom, tabsTop: tabs.top };
-  });
-  assert.ok(visibility.reasonBottom <= visibility.panelBottom, "The story and reason fit the phone panel");
-  assert.ok(visibility.panelBottom <= visibility.tabsTop, "Tabs do not cover the panel");
-  await page.screenshot({ path: "screenshots/compact-table-phone-news.png" });
+  assert.deepEqual(await phonePositions(), phoneBefore, "Phone sections stay in place when news arrives");
+  assert.equal(await page.evaluate(() => scrollY), scrollBefore, "News never scrolls the page automatically");
+  assert.equal(await page.locator("#table-news").isVisible(), true);
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.screenshot({ path: "screenshots/compact-table-phone-result.png" });
   await page.locator("#language").click();
-  assert.equal(await page.locator(".compact-table").getAttribute("data-table-pane"), "news", "Language rerender preserves the selected pane");
   assert.match(await page.locator("#table-news .newspaper-masthead").textContent(), /꼬꼬일보/);
-  await page.locator("#tab-news").focus();
-  await page.keyboard.press("ArrowRight");
-  assert.equal(await page.locator("#tab-trade").getAttribute("aria-selected"), "true");
+  assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3);
   await page.locator("#language").click();
   if (await page.locator("#next-round-control").isVisible()) await page.locator("#next-round-control").click();
   await page.locator("#lock-order:not([disabled])").waitFor();
   await page.screenshot({ path: "screenshots/compact-table-phone-trade.png" });
   for (const width of [320, 375, 390, 768, 1024]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const pane of ["market", "news", "trade"]) {
-      await page.locator(`#tab-${pane}`).click();
-      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Overflow at ${width}px in ${pane}`);
-      assert.equal(await page.locator(`#table-${pane}`).isVisible(), true);
-      assert.equal(await page.locator('.compact-table > .panel:visible').count(), 1);
-    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Overflow at ${width}px`);
+    assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3, `All game sections are on the main screen at ${width}px`);
+    assert.equal(await page.locator('[role="tab"]').count(), 0);
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.waitForFunction(() => [...document.querySelectorAll(".compact-table > .panel")].every(panel => !panel.hidden));
-  assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3, "Desktop restores all panels after a mobile resize");
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.waitForFunction(() => document.querySelector(".compact-table").style.height !== "auto");
+  assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3);
   await page.locator('[data-action="buy"]').click();
   await page.locator("#trade-stock").selectOption("coop");
   await page.locator("#protection-choice summary").click();
@@ -103,5 +102,5 @@ try {
   await page.locator("#lock-order:not([disabled])").waitFor();
   assert.deepEqual(await bounds(), protectedBounds);
   assert.deepEqual(errors, []);
-  console.log("PASS: desktop table fits, stable round phases, phone tabs, unread news, keyboard navigation, expanded paper and responsive widths.");
+  console.log("PASS: desktop table fits, stable round phases, news on the main phone/tablet surface without tabs, expanded paper and responsive widths.");
 } finally { await browser.close(); }
