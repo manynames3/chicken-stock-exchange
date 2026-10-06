@@ -92,7 +92,7 @@ try {
   await page.locator("#lock-order").click();
   await page.locator("#next-round-control").waitFor();
   assert.equal(await page.locator(".newspaper").isVisible(), true);
-  assert.equal(await page.locator(".reveal-dice").isVisible(), true);
+  assert.equal(await page.locator(".table-dice").isVisible(), true);
   assert.equal(
     await page.evaluate(() => window.__soundStats.oscillators),
     0,
@@ -116,7 +116,7 @@ try {
   await page.waitForFunction(() => window.__gains[0].gain.value === 0, null, {
     timeout: 1000,
   });
-  await page.locator("#skip-reveal").click();
+  await page.locator("#next-round-control").click();
   const samples = await page.evaluate(async () => {
     const { STOCKS } = await import("/game.js");
     return {
@@ -182,7 +182,7 @@ try {
     mutedBefore,
     "Mute also applies to subsequent news",
   );
-  await page.locator("#skip-reveal").click();
+  await page.locator("#next-round-control").click();
   await page.locator("#sound-button").click();
   const enabledBefore = await page.evaluate(
     () => window.__soundStats.oscillators,

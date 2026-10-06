@@ -53,6 +53,33 @@ try {
     assert.deepEqual(result.faults, [], `Paper errors at ${width}px`);
     sizes.push({ width, maxHeight: Math.ceil(result.maxHeight) });
   }
+  const compactSizes = [];
+  for (const width of [320, 375, 390, 768, 1024, 1366, 1440]) {
+    await page.setViewportSize({ width, height: width >= 1100 ? 900 : 844 });
+    const result = await page.evaluate(async () => {
+      const { renderNewspaper, newsStory } = await import("/news.js");
+      const { STOCKS, makeDeck } = await import("/game.js");
+      const faults = [];
+      let maxHeight = 0;
+      for (const lang of ["en", "ko"]) for (const event of makeDeck(() => 0.5)) {
+        document.querySelector("#app").innerHTML = `<div class="compact-table"><section class="market panel"></section><section class="recap-panel panel"><div class="news-slot">${renderNewspaper({ round: 4, event, movements: STOCKS.map(s => ({ stock: s.id, before: 10 })) }, STOCKS, lang, { compact: true })}</div></section><aside class="trading-panel panel"></aside></div>`;
+        if (innerWidth < 1100) document.querySelector(".market").hidden = document.querySelector(".trading-panel").hidden = true;
+        const paper = document.querySelector(".held-paper"), box = paper.getBoundingClientRect();
+        for (const selector of ["h2", ".newspaper-description", ".newspaper-reason"]) {
+          const element = paper.querySelector(selector), rect = element.getBoundingClientRect();
+          if (rect.left < box.left || rect.right > box.right + 1 || rect.bottom > box.bottom + 1) faults.push(`${lang} ${event.target} ${event.effect}: ${selector} is outside the compact paper`);
+        }
+        if (!paper.querySelector(".newspaper-reason p").textContent.includes(newsStory(event, STOCKS, lang).reason)) faults.push("Compact paper loses the reason");
+        if (parseFloat(getComputedStyle(paper.querySelector(".newspaper-description")).fontSize) < 14) faults.push("Compact story is too small");
+        if (document.documentElement.scrollWidth > innerWidth) faults.push("Compact paper overflows horizontally");
+        maxHeight = Math.max(maxHeight, document.querySelector(".newspaper-holder").getBoundingClientRect().height);
+      }
+      return { faults, maxHeight };
+    });
+    assert.deepEqual(result.faults, [], `Compact paper errors at ${width}px`);
+    compactSizes.push({ width, maxHeight: Math.ceil(result.maxHeight) });
+  }
+  console.log("Compact editions:", JSON.stringify(compactSizes));
   assert.deepEqual(errors, []);
   console.log(JSON.stringify(sizes));
   console.log("PASS: all 30 bilingual stories and price explanations are printed inside the held paper at phone, tablet and desktop widths.");

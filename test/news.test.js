@@ -26,6 +26,11 @@ test("every card has a distinct bilingual story with its exact news effect", () 
       assert.ok(paper.includes(story.heading));
       assert.ok(paper.includes(story.description));
       assert.ok(paper.includes(story.reason));
+      const compact = renderNewspaper({ round: 3, event, movements: STOCKS.map(s => ({ stock: s.id, before: 10 })) }, STOCKS, lang, { compact: true });
+      assert.match(compact, /compact-paper/);
+      assert.ok(compact.includes(story.description));
+      assert.ok(compact.includes(story.reason));
+      assert.ok(compact.includes(`${story.positive ? "+" : "−"}$${Math.abs(event.effect)}`));
       assert.match(paper, /held-paper/);
       assert.match(paper, /reporter-head/);
       assert.match(paper, /left-grip/);

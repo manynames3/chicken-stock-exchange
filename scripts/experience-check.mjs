@@ -109,20 +109,12 @@ try {
     fullPage: true,
   });
   await page.setViewportSize({ width: 390, height: 844 });
-  // Desktop history was open, so explicitly close it to verify the mobile default flow.
-  if (await page.locator("#market-history").evaluate((el) => el.open))
-    await page.locator("#market-history > summary").click();
-  const stockRect = await page.locator(".stock-tiles").boundingBox(),
-    tradeRect = await page.locator(".trading-panel").boundingBox(),
-    historyRect = await page.locator("#market-history").boundingBox();
-  assert.ok(
-    stockRect.y < tradeRect.y && tradeRect.y < historyRect.y,
-    "Mobile stocks and trading precede the chart",
-  );
-  assert.ok(
-    tradeRect.width > 350 && stockRect.width > 350,
-    "Mobile controls use the available width",
-  );
+  await page.locator("#tab-market").click();
+  assert.equal(await page.locator(".stock-tiles").isVisible(), true);
+  assert.equal(await page.locator(".trading-panel").isVisible(), false);
+  await page.locator("#tab-trade").click();
+  assert.equal(await page.locator(".trading-panel").isVisible(), true);
+  assert.ok((await page.locator(".trading-panel").boundingBox()).width > 350);
   await page.screenshot({
     path: "screenshots/upgraded-mobile.png",
     fullPage: true,
@@ -139,19 +131,19 @@ try {
   await page.locator("#lock-order").click();
   await page.locator('[data-reveal-stage="4"]').waitFor();
   assert.equal(await page.locator(".reveal-news").isVisible(), true);
-  assert.equal(await page.locator(".reveal-dice").isVisible(), true);
+  assert.equal(await page.locator(".table-dice").isVisible(), true);
   assert.equal(await page.locator("#trade-stock").isDisabled(), true);
   assert.equal(await page.locator(".journal-round").count(), 1);
   assert.equal(await page.locator(".player-meta").first().isVisible(), true);
   assert.equal(await page.locator(".recap-panel .price-equation").count(), 4);
-  await page.locator("#skip-reveal").click();
+  await page.locator("#next-round-control").click();
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (let round = 2; round <= 12; round++) {
     await page.locator("#lock-order:not([disabled])").waitFor();
     await page.locator("#lock-order").click();
     if (round === 12) break;
     if (await page.locator(".finale").count()) break;
-    await page.locator("#skip-reveal").click();
+    await page.locator("#next-round-control").click();
   }
   await page.locator(".finale").waitFor();
   assert.equal(await page.locator(".match-highlights > div").count(), 4);
@@ -221,7 +213,7 @@ try {
     () => document.querySelector("#connection").textContent === "Connected",
   );
   await page.locator("#lock-order").click();
-  await page.locator("#skip-reveal").waitFor();
+  await page.locator("#next-round-control").waitFor();
   assert.match(
     await page.locator(".revealed-orders").textContent(),
     /Captain Cluck/,

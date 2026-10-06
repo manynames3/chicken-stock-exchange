@@ -27,8 +27,8 @@ await page.locator('[data-action="buy"]').click();
 await page.locator('[data-quantity="3"]').click();
 await page.waitForTimeout(500);
 await page.locator("#lock-order").click();
-await page.locator("#skip-reveal").waitFor();
-await page.locator("#skip-reveal").click();
+await page.locator("#next-round-control").waitFor();
+await page.locator("#next-round-control").click();
 await page.locator("#lock-order:not([disabled])").waitFor();
 await page.reload();
 await page.locator(".market-chart").waitFor();
@@ -77,9 +77,10 @@ await host.locator("#start-game:not([disabled])").waitFor();
 await host.locator("#start-game").click();
 await host.locator(".game-layout").waitFor();
 await guest.locator(".game-layout").waitFor();
+await host.locator("#tab-trade").click();
 await host.locator("#lock-order").click();
 await guest.locator("#lock-order").click();
-await guest.locator("#skip-reveal").waitFor();
+await guest.locator("#next-round-control").waitFor();
 assert.ok(
   await host.evaluate(
     () => document.documentElement.scrollWidth <= window.innerWidth,

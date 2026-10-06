@@ -11,6 +11,7 @@
     <title>Good News Bad News · 주식</title>
     <link rel="icon" href="/assets/chicken-news-logo.png" type="image/png" />
     <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/table.css" />
     <script type="module" src="/app.js"></script>
   </head>
   <body>
@@ -45,6 +46,10 @@
       </div>
       <div id="rules-content"></div>
       <button id="rules-done" class="primary full"></button>
+    </dialog>
+    <dialog id="newspaper-dialog" aria-labelledby="newspaper-title">
+      <div class="dialog-heading"><h2 id="newspaper-title"></h2><button id="close-newspaper" class="icon-button" aria-label="Close newspaper">✕</button></div>
+      <div id="expanded-newspaper"></div>
     </dialog>
     <footer>
       <span>Good News Bad News · 주식</span

@@ -273,15 +273,15 @@ export function newsStory(event, stocks, lang = "en") {
 function reporterPart(viewBox, className) {
   return `<svg class="reporter-part ${className}" viewBox="${viewBox}" aria-hidden="true" focusable="false"><image href="/assets/chicken-news-logo.png" width="1280" height="1280"/></svg>`;
 }
-function heldPaper(contents, edition, lang) {
+function heldPaper(contents, edition, lang, compact = false) {
   const t = (en, ko) => tr(lang, en, ko);
-  return `<div class="newspaper-holder">${reporterPart("220 55 850 525", "reporter-head")}<article class="newspaper held-paper ${edition}" aria-label="${t("The Cluck Times newspaper held by Captain Cluck", "캡틴 꼬꼬가 들고 있는 꼬꼬일보 신문")}">${reporterPart("175 645 180 290", "reporter-grip left-grip")}${reporterPart("920 645 185 290", "reporter-grip right-grip")}${contents}${reporterPart("350 1010 575 165", "reporter-feet")}</article></div>`;
+  return `<div class="newspaper-holder ${compact ? "compact-paper" : ""}">${reporterPart("220 55 850 525", "reporter-head")}<article class="newspaper held-paper ${edition}" aria-label="${t("The Cluck Times newspaper held by Captain Cluck", "캡틴 꼬꼬가 들고 있는 꼬꼬일보 신문")}">${reporterPart("175 645 180 290", "reporter-grip left-grip")}${reporterPart("920 645 185 290", "reporter-grip right-grip")}${contents}${reporterPart("350 1010 575 165", "reporter-feet")}</article></div>`;
 }
 function masthead(round, lang) {
   const t = (en, ko) => tr(lang, en, ko);
   return `<header class="newspaper-masthead"><span>${t("GOOD NEWS BAD NEWS · MARKET EDITION", "GOOD NEWS BAD NEWS · 주식 시장판")}</span><strong>${t("The Cluck Times", "꼬꼬일보")}</strong><div><span>${round ? `${t("ROUND", "라운드")} ${round}` : t("FIRST EDITION COMING SOON", "첫 신문 발행 준비 중")}</span><span>${t("Reported by Captain Cluck", "기자: 캡틴 꼬꼬")}</span></div></header>`;
 }
-export function renderNewspaper(recap, stocks, lang = "en") {
+export function renderNewspaper(recap, stocks, lang = "en", { compact = false } = {}) {
   const t = (en, ko) => tr(lang, en, ko),
     story = newsStory(recap.event, stocks, lang),
     amount = Math.abs(recap.event.effect);
@@ -292,14 +292,14 @@ export function renderNewspaper(recap, stocks, lang = "en") {
     (s) => recap.movements.find((m) => m.stock === s.id)?.before > 0,
   );
   const contents = `${masthead(recap.round, lang)}
-    <div class="newspaper-ribbon"><b>${story.badge}</b><span>${t("BREAKING NEWS", "속보")}</span></div>
+    <div class="newspaper-ribbon"><b>${story.badge}</b><span>${compact ? `${story.positive ? "+" : "−"}$${amount} ${t("news effect", "뉴스 효과")}` : t("BREAKING NEWS", "속보")}</span></div>
     <div class="newspaper-front">
       <div class="newspaper-story">
         <div class="newspaper-kicker">${e(story.target)} · ${t("TODAY’S BIG STORY", "오늘의 주요 뉴스")}</div>
         <h2>${e(story.heading)}</h2>
         <p class="newspaper-description">${e(story.description)}</p>
         <section class="newspaper-reason" aria-label="${t("Why this news changes share value", "이 뉴스가 주식 가치를 바꾸는 이유")}">
-          <h3>${t(story.positive ? "Why this news pushes the price up" : "Why this news pushes the price down", story.positive ? "이 뉴스가 주가를 올리는 이유" : "이 뉴스가 주가를 내리는 이유")}</h3>
+          <h3>${compact ? t("Why the price moves", "주가가 움직이는 이유") : t(story.positive ? "Why this news pushes the price up" : "Why this news pushes the price down", story.positive ? "이 뉴스가 주가를 올리는 이유" : "이 뉴스가 주가를 내리는 이유")}</h3>
           <p>${e(story.reason)}</p>
         </section>
         <div class="newspaper-byline">${t("A share is a small piece of a company. Its value can change when people expect that company to earn more or less money.", "주식 한 주는 회사의 작은 조각이에요. 사람들이 회사가 돈을 더 벌거나 덜 벌 것이라 기대하면 그 가치가 바뀔 수 있어요.")}</div>
@@ -312,12 +312,12 @@ export function renderNewspaper(recap, stocks, lang = "en") {
         <p class="news-effect-note">${t("The amount on the news card is a game rule.", "뉴스 카드의 숫자는 게임 규칙이에요.")}</p>
       </aside>
     </div>
-    <footer class="newspaper-footer"><p>${t("This is the news effect. Trades and dice also change the final price, so good news can still end with a price drop, and bad news can still end with a rise.", "이것은 뉴스의 효과예요. 거래와 주사위도 최종 가격을 바꾸므로 좋은 뉴스 뒤에도 가격이 내려가거나 나쁜 뉴스 뒤에도 올라갈 수 있어요.")}${active.length < affected.length ? ` ${t("Delisted stocks stay at zero.", "상장폐지된 종목은 0을 유지해요.")}` : ""}</p><button id="replay-news-sound" class="secondary">♪ ${t("Play news sound", "뉴스 효과음 듣기")}</button></footer>`;
-  return heldPaper(contents, story.positive ? "good-edition" : "bad-edition", lang);
+    <footer class="newspaper-footer"><p>${compact ? t("News + trades + dice = the final price.", "뉴스 + 거래 + 주사위 = 최종 가격.") : t("This is the news effect. Trades and dice also change the final price, so good news can still end with a price drop, and bad news can still end with a rise.", "이것은 뉴스의 효과예요. 거래와 주사위도 최종 가격을 바꾸므로 좋은 뉴스 뒤에도 가격이 내려가거나 나쁜 뉴스 뒤에도 올라갈 수 있어요.")}${active.length < affected.length ? ` ${t("Delisted stocks stay at zero.", "상장폐지된 종목은 0을 유지해요.")}` : ""}</p><button id="replay-news-sound" class="secondary">♪ ${t("Play news sound", "뉴스 효과음 듣기")}</button></footer>`;
+  return heldPaper(contents, story.positive ? "good-edition" : "bad-edition", lang, compact);
 }
-export function renderWaitingNewspaper(lang = "en") {
+export function renderWaitingNewspaper(lang = "en", { compact = false } = {}) {
   const t = (en, ko) => tr(lang, en, ko);
   return heldPaper(`${masthead(null, lang)}
     <div class="newspaper-ribbon"><b>${t("AT THE NEWS DESK", "신문 편집실")}</b><span>${t("REPORTER ON DUTY", "취재 중")}</span></div>
-    <div class="newspaper-front"><div class="newspaper-story"><div class="newspaper-kicker">${t("TODAY’S BIG STORY", "오늘의 주요 뉴스")}</div><h2>${t("The news is still under wraps!", "오늘의 뉴스는 아직 비밀!")}</h2><p class="newspaper-description">${t("Captain Cluck is getting the next story ready. Choose your trade; when everyone locks their order, the headline and story appear on this paper.", "캡틴 꼬꼬가 다음 기사를 준비하고 있어요. 거래를 선택하세요. 모두 주문을 확정하면 이 신문에 제목과 기사가 나타나요.")}</p><section class="newspaper-reason"><h3>${t("Look for the reason behind the news", "뉴스 뒤에 숨은 이유를 찾아보세요")}</h3><p>${t("More customers can mean more sales. Repairs and delays can cost a company money. Each story explains what happened and why traders think the company is worth more or less.", "손님이 늘면 더 많이 팔 수 있어요. 수리와 지연에는 회사의 돈이 들어요. 각 기사는 무슨 일이 있었고 왜 투자자들이 회사의 가치를 높게 또는 낮게 보는지 알려 줘요.")}</p></section><div class="newspaper-byline">${t("A share is a small piece of a company.", "주식 한 주는 회사의 작은 조각이에요.")}</div></div><aside class="newspaper-impact"><span>${t("NEWS EFFECT", "뉴스 효과")}</span><strong>?</strong><b>${t("Still a secret", "아직 비밀")}</b><p>${t("No news has been revealed yet.", "아직 공개된 뉴스가 없어요.")}</p></aside></div><footer class="newspaper-footer"><p>${t("The newspaper stays in this spot. Every round brings a new story.", "신문은 이 자리에 있어요. 라운드마다 새 기사가 나와요.")}</p><button class="secondary" disabled>♪ ${t("Sound after the news", "뉴스 공개 후 효과음")}</button></footer>`, "waiting-edition", lang);
+    <div class="newspaper-front"><div class="newspaper-story"><div class="newspaper-kicker">${t("TODAY’S BIG STORY", "오늘의 주요 뉴스")}</div><h2>${t("The news is still under wraps!", "오늘의 뉴스는 아직 비밀!")}</h2><p class="newspaper-description">${t("Captain Cluck is getting the next story ready. Choose your trade; when everyone locks their order, the headline and story appear on this paper.", "캡틴 꼬꼬가 다음 기사를 준비하고 있어요. 거래를 선택하세요. 모두 주문을 확정하면 이 신문에 제목과 기사가 나타나요.")}</p><section class="newspaper-reason"><h3>${t("Look for the reason behind the news", "뉴스 뒤에 숨은 이유를 찾아보세요")}</h3><p>${t("More customers can mean more sales. Repairs and delays can cost a company money. Each story explains what happened and why traders think the company is worth more or less.", "손님이 늘면 더 많이 팔 수 있어요. 수리와 지연에는 회사의 돈이 들어요. 각 기사는 무슨 일이 있었고 왜 투자자들이 회사의 가치를 높게 또는 낮게 보는지 알려 줘요.")}</p></section><div class="newspaper-byline">${t("A share is a small piece of a company.", "주식 한 주는 회사의 작은 조각이에요.")}</div></div><aside class="newspaper-impact"><span>${t("NEWS EFFECT", "뉴스 효과")}</span><strong>?</strong><b>${t("Still a secret", "아직 비밀")}</b><p>${t("No news has been revealed yet.", "아직 공개된 뉴스가 없어요.")}</p></aside></div><footer class="newspaper-footer"><p>${t("The newspaper stays in this spot. Every round brings a new story.", "신문은 이 자리에 있어요. 라운드마다 새 기사가 나와요.")}</p><button class="secondary" disabled>♪ ${t("Sound after the news", "뉴스 공개 후 효과음")}</button></footer>`, "waiting-edition", lang, compact);
 }

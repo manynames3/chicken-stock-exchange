@@ -42,7 +42,7 @@ try {
   );
   await page.unroute("**/api/rooms/*/action");
   await page.locator("#lock-order").click();
-  await page.locator("#skip-reveal").click();
+  await page.locator("#next-round-control").click();
   await page.locator("#lock-order:not([disabled])").waitFor();
   await page.locator('[data-stock="coop"]').click();
   assert.equal(
