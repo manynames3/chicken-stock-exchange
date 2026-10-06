@@ -3788,3 +3788,255 @@ a:focus-visible {
     height: 950px;
   }
 }
+
+/* Captain Cluck holds the real round story on the printed front page. */
+.news-slot {
+  height: 870px;
+}
+.newspaper-holder {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 165px 34px 46px;
+}
+.news-slot .newspaper-holder {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.reporter-part {
+  position: absolute;
+  pointer-events: none;
+}
+.reporter-head {
+  width: 310px;
+  height: 192px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.held-paper,
+.news-slot .held-paper {
+  position: relative;
+  z-index: 1;
+  height: auto;
+  min-height: 645px;
+  overflow: visible;
+  padding: 24px 32px;
+  border: 1px solid #b8ac92;
+  border-radius: 1px;
+  background:
+    linear-gradient(90deg, transparent 48.8%, #d9d0bc3b 50%, transparent 51.2%),
+    repeating-linear-gradient(0deg, #00000002 0 1px, transparent 1px 4px),
+    #fff9e9;
+  box-shadow: 0 2px 0 #e7deca, 0 5px 0 -1px #f8f2e5, 0 6px 0 -1px #c9bda4, 5px 10px 20px #31251014;
+}
+.reporter-grip {
+  width: 60px;
+  height: 95px;
+  top: 37%;
+  z-index: 2;
+}
+.left-grip {
+  left: -35px;
+  clip-path: polygon(38% 4%, 76% 7%, 96% 29%, 96% 73%, 66% 94%, 22% 81%, 0 54%, 7% 21%);
+}
+.right-grip {
+  right: -35px;
+  clip-path: polygon(22% 7%, 70% 3%, 95% 27%, 100% 58%, 78% 85%, 35% 96%, 6% 76%, 4% 34%);
+}
+.reporter-feet {
+  width: 145px;
+  height: 43px;
+  bottom: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: -1;
+}
+.held-paper .newspaper-masthead > strong {
+  font-size: clamp(2rem, 3.4vw, 3.25rem);
+  letter-spacing: -0.055em;
+  margin: 6px 0 8px;
+}
+.held-paper .newspaper-masthead > span {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+}
+.held-paper .newspaper-ribbon > span {
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+.held-paper .newspaper-front {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 27px;
+  padding: 24px 0;
+}
+.held-paper .newspaper-story {
+  grid-column: auto;
+}
+.held-paper h2 {
+  font-size: clamp(1.85rem, 3.3vw, 3rem);
+  line-height: 1.07;
+}
+.held-paper .newspaper-description {
+  max-width: none;
+  margin-bottom: 18px;
+}
+.newspaper-reason {
+  padding: 16px 0 0;
+  border-top: 1px solid #c6bea8;
+  margin-bottom: 18px;
+}
+.newspaper-reason h3 {
+  margin: 0 0 8px;
+  font: 800 1.15rem/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+}
+.newspaper-reason p {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+.held-paper .newspaper-byline {
+  line-height: 1.55;
+  font-size: 0.73rem;
+}
+.held-paper .newspaper-footer {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  gap: 16px;
+}
+.held-paper .newspaper-footer p {
+  font-size: 0.72rem;
+  max-width: none;
+}
+.held-paper .news-effect-note {
+  font-size: 0.68rem;
+  color: #6f685b;
+  margin-top: 20px;
+}
+@media (min-width: 741px) and (max-width: 1000px) {
+  .news-slot {
+    height: 1000px;
+  }
+  .held-paper .newspaper-front {
+    grid-template-columns: minmax(0, 1fr) 155px;
+    gap: 20px;
+  }
+}
+@media (max-width: 740px) {
+  .news-slot {
+    height: 1220px;
+  }
+  .newspaper-holder {
+    padding: 122px 12px 40px;
+  }
+  .reporter-head {
+    width: 238px;
+    height: 148px;
+  }
+  .held-paper,
+  .news-slot .held-paper {
+    min-height: 1040px;
+    padding: 18px;
+  }
+  .reporter-grip {
+    width: 36px;
+    height: 58px;
+    top: 28%;
+  }
+  .left-grip {
+    left: -20px;
+  }
+  .right-grip {
+    right: -20px;
+  }
+  .reporter-feet {
+    width: 125px;
+    height: 36px;
+    bottom: -33px;
+  }
+  .held-paper .newspaper-masthead > strong {
+    font-size: 1.95rem;
+  }
+  .held-paper .newspaper-masthead > span {
+    font-size: 0.51rem;
+    letter-spacing: 0.04em;
+  }
+  .held-paper .newspaper-ribbon > span {
+    font-size: 0.56rem;
+  }
+  .held-paper .newspaper-front {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+    padding: 20px 0;
+  }
+  .held-paper h2 {
+    font-size: 1.9rem;
+  }
+  .held-paper .newspaper-description,
+  .newspaper-reason p {
+    font-size: 0.94rem;
+    line-height: 1.6;
+  }
+  .held-paper .newspaper-impact {
+    text-align: left;
+    padding: 12px;
+    border: 1px solid #c6bea8;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 5px 12px;
+    align-items: center;
+  }
+  .held-paper .newspaper-impact > strong {
+    grid-row: 2 / 5;
+    font-size: 3.3rem;
+    margin: 0;
+  }
+  .held-paper .newspaper-impact > span {
+    grid-column: 1 / -1;
+  }
+  .held-paper .newspaper-impact > p {
+    margin: 0;
+  }
+  .held-paper .newspaper-targets {
+    justify-content: start;
+  }
+  .held-paper .news-effect-note {
+    grid-column: 1 / -1;
+    margin-top: 7px !important;
+  }
+  .held-paper .newspaper-footer {
+    margin-top: auto;
+  }
+}
+/* Leave the reporter's eyes visible above the paper and fit every edition. */
+.news-slot {
+  height: 960px;
+}
+.newspaper-holder {
+  padding-top: 190px;
+}
+@media (min-width: 741px) and (max-width: 1000px) {
+  .news-slot {
+    height: 1000px;
+  }
+}
+@media (max-width: 740px) {
+  .news-slot {
+    height: 1350px;
+  }
+  .newspaper-holder {
+    padding-top: 145px;
+  }
+}
+@media (max-width: 360px) {
+  .news-slot {
+    height: 1510px;
+  }
+}

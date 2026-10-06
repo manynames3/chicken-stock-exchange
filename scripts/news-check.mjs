@@ -130,7 +130,7 @@ try {
   await preview.goto(base);
   await preview.evaluate(async () => {
     const image = new Image();
-    image.src = "/assets/chicken-expressions.png";
+    image.src = "/assets/chicken-news-logo.png";
     await image.decode();
   });
   for (const [edition, event] of [
@@ -148,7 +148,7 @@ try {
       { samples, event },
     );
     await preview
-      .locator(".newspaper")
+      .locator(".newspaper-holder")
       .screenshot({ path: `screenshots/newspaper-${edition}.png` });
     for (const width of [320, 390, 768, 1440]) {
       await preview.setViewportSize({ width, height: 1000 });
@@ -162,7 +162,7 @@ try {
   }
   await preview.setViewportSize({ width: 390, height: 844 });
   await preview
-    .locator(".newspaper")
+    .locator(".newspaper-holder")
     .screenshot({ path: "screenshots/newspaper-mobile.png" });
   await preview.locator("#language").click();
   // The real in-game language toggle rebuilds the complete recap in Korean.
