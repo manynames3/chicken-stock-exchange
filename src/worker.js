@@ -6,6 +6,7 @@ import {
   resolveRound,
   nextRound,
   publicRoom,
+  roundDeadline,
 } from "./rules.js";
 
 const json = (data, status = 200) => Response.json(data, { status });
@@ -133,6 +134,7 @@ export class GameRoom {
     return publicRoom(this.room, id, this.connected());
   }
   async save() {
+    this.room.revision = (this.room.revision || 0) + 1;
     await this.ctx.storage.put("room", this.room);
     await this.ctx.storage.setAlarm(this.room.deadline || this.room.expiresAt);
   }
@@ -206,6 +208,9 @@ export class GameRoom {
         computer.isComputer = true;
         this.room.players.push(computer);
         this.room.solo = true;
+        this.room.roundSeconds = [0, 60, 120].includes(body.seconds)
+          ? body.seconds
+          : 60;
         resetMatch(this.room, random, Date.now());
       }
       await this.save();
@@ -290,7 +295,37 @@ export class GameRoom {
   }
   async action(player, body) {
     const r = this.room;
-    if (body.type === "ready" && r.phase === "lobby")
+    if (body.type === "restart" && r.solo && player.id === r.hostId) {
+      resetMatch(r, random, Date.now());
+    } else if (
+      body.type === "timer" &&
+      r.solo &&
+      r.phase === "planning" &&
+      !player.locked
+    ) {
+      if (![0, 60, 120].includes(body.seconds))
+        throw new Error("INVALID_TIMER");
+      r.roundSeconds = body.seconds;
+      r.deadline = roundDeadline(r, Date.now());
+    } else if (
+      body.type === "pause" &&
+      r.solo &&
+      ["planning", "reveal"].includes(r.phase)
+    ) {
+      r.pausedPhase = r.phase;
+      r.remainingMs =
+        r.deadline === null ? null : Math.max(0, r.deadline - Date.now());
+      r.phase = "paused";
+      r.deadline = null;
+    } else if (body.type === "resume" && r.solo && r.phase === "paused") {
+      r.phase = r.pausedPhase || "planning";
+      r.deadline =
+        r.remainingMs === null
+          ? null
+          : Date.now() + Math.max(1000, r.remainingMs || 0);
+      delete r.pausedPhase;
+      delete r.remainingMs;
+    } else if (body.type === "ready" && r.phase === "lobby")
       player.ready = Boolean(body.ready);
     else if (body.type === "start" && r.phase === "lobby") {
       if (player.id !== r.hostId) throw new Error("HOST_ONLY");

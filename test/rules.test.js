@@ -12,7 +12,10 @@ import {
   makeDeck,
   portfolio,
   computerOrder,
+  expectedNews,
+  roundDeadline,
 } from "../src/rules.js";
+import { maxShares, orderError, MAX_TRADE } from "../public/order.js";
 function fixture(event = { target: "coop", effect: -3 }) {
   const room = {
     code: "ABC234",
@@ -50,7 +53,7 @@ test("orders reject insufficient cash, excess shares, fractional quantities and 
   const r = fixture(),
     p = r.players[0];
   for (const order of [
-    { action: "buy", stock: "coop", quantity: 4 },
+    { action: "buy", stock: "coop", quantity: MAX_TRADE + 1 },
     { action: "sell", stock: "coop", quantity: 3 },
     { action: "buy", stock: "coop", quantity: 1.5 },
     { action: "oops", stock: "coop", quantity: 1 },
@@ -266,4 +269,59 @@ test("computer locks on each round and survives rematch reset", () => {
   nextRound(r, 3000, tie);
   assert.equal(r.players[1].locked, true);
   assert.equal(publicRoom(r, "a").players[1].draft, undefined);
+});
+test("client quantity limits and server validation agree, including zero shares", () => {
+  const r = fixture(),
+    p = r.players[0];
+  assert.equal(MAX_TRADE, 5);
+  assert.equal(maxShares(r.stocks, p, "buy", "coop"), 5);
+  assert.equal(maxShares(r.stocks, p, "sell", "coop"), 2);
+  p.cash = 19;
+  assert.equal(maxShares(r.stocks, p, "buy", "coop"), 1);
+  p.holdings.coop = 0;
+  const order = { action: "sell", stock: "coop", quantity: 1 };
+  assert.equal(maxShares(r.stocks, p, "sell", "coop"), 0);
+  assert.equal(orderError(r.stocks, p, order), "NOT_ENOUGH_SHARES");
+  assert.throws(() => validateOrder(r, p, order), /NOT_ENOUGH_SHARES/);
+  p.draft = order;
+  resolveRound(r, tie, 2000);
+  assert.equal(p.cash, 19);
+  assert.equal(p.holdings.coop, 0);
+  assert.equal(r.recaps[0].trades[0].action, "hold");
+});
+test("known news target conditions the estimate on only that target’s discarded cards", () => {
+  const discards = [
+    { target: "coop", effect: 3 },
+    { target: "nest", effect: -3 },
+    { target: "all", effect: -2 },
+  ];
+  assert.equal(expectedNews(discards, "coop", "coop"), -3 / 5);
+  assert.equal(expectedNews(discards, "coop", "nest"), 0);
+  assert.equal(expectedNews(discards, "all", "coop"), 2 / 5);
+  assert.equal(expectedNews(discards, "all", "nest"), 2 / 5);
+});
+test("recaps and scorecards report actual portfolio changes after settlement", () => {
+  const r = fixture();
+  r.players[0].draft = { action: "buy", stock: "coop", quantity: 2 };
+  resolveRound(r, tie, 2000);
+  assert.deepEqual(r.recaps[0].settlements, [
+    { playerId: "a", before: 180, after: 172, delta: -8 },
+    { playerId: "b", before: 180, after: 176, delta: -4 },
+  ]);
+  assert.equal(publicRoom(r, "a").players[0].lastRoundChange, -8);
+});
+test("solo timer options survive rounds and rematches; multiplayer keeps its deadline", () => {
+  const r = fixture();
+  r.solo = true;
+  r.roundSeconds = 0;
+  assert.equal(roundDeadline(r, 1000), null);
+  resetMatch(r, tie, 1000);
+  assert.equal(r.deadline, null);
+  resolveRound(r, tie, 2000);
+  nextRound(r, 3000, tie);
+  assert.equal(r.deadline, null);
+  r.roundSeconds = 120;
+  assert.equal(roundDeadline(r, 1000), 121000);
+  r.solo = false;
+  assert.equal(roundDeadline(r, 1000), 61000);
 });

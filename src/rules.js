@@ -1,3 +1,4 @@
+import { orderError, MAX_TRADE } from "../public/order.js";
 export const STOCKS = [
   {
     id: "coop",
@@ -97,54 +98,28 @@ export function resetMatch(room, random, now) {
   room.recaps = [];
   room.round = 1;
   room.phase = "planning";
-  room.deadline = now + ROUND_MS;
+  room.deadline = roundDeadline(room, now);
   room.match = (room.match || 0) + 1;
+  delete room.pausedPhase;
+  delete room.remainingMs;
   prepareComputerOrders(room, random);
 }
 export function validateOrder(room, player, input) {
-  if (!input || !["buy", "sell", "hold"].includes(input.action))
-    throw new Error("INVALID_ORDER");
-  const stock = room.stocks.find((s) => s.id === input.stock);
-  if (
-    !stock ||
-    !Number.isInteger(input.quantity) ||
-    input.quantity < 1 ||
-    input.quantity > 3
-  )
-    throw new Error("INVALID_ORDER");
-  if (input.action !== "hold" && stock.delisted) throw new Error("DELISTED");
-  if (input.action === "buy" && player.cash < stock.price * input.quantity)
-    throw new Error("NOT_ENOUGH_CASH");
-  if (
-    input.action === "sell" &&
-    (player.holdings[stock.id] || 0) < input.quantity
-  )
-    throw new Error("NOT_ENOUGH_SHARES");
+  const error = orderError(room.stocks, player, input);
+  if (error) throw new Error(error);
   const protection = input.protection ?? null;
-  if (protection !== null) {
-    const protectedStock = room.stocks.find((s) => s.id === protection);
-    if (!protectedStock || protectedStock.delisted || player.protections < 1)
-      throw new Error("INVALID_PROTECTION");
-    const after =
-      (player.holdings[protection] || 0) +
-      (stock.id === protection
-        ? input.action === "buy"
-          ? input.quantity
-          : input.action === "sell"
-            ? -input.quantity
-            : 0
-        : 0);
-    if (after <= 0) throw new Error("NO_SHARES_TO_PROTECT");
-  }
   return {
     action: input.action,
-    stock: stock.id,
+    stock: input.stock,
     quantity: input.quantity,
     protection,
   };
 }
 export function resolveRound(room, random, now) {
   if (room.phase !== "planning") return;
+  const beforeScores = new Map(
+    room.players.map((p) => [p.id, portfolio(p, room.stocks)]),
+  );
   const event = room.deck[room.discards.length];
   const demand = Object.fromEntries(STOCKS.map((s) => [s.id, 0]));
   const trades = [];
@@ -214,6 +189,12 @@ export function resolveRound(room, random, now) {
     market,
     trades,
     movements,
+    settlements: room.players.map((p) => ({
+      playerId: p.id,
+      before: beforeScores.get(p.id),
+      after: portfolio(p, room.stocks),
+      delta: portfolio(p, room.stocks) - beforeScores.get(p.id),
+    })),
   });
   room.phase =
     room.round >= ROUNDS || room.stocks.every((s) => s.delisted)
@@ -229,20 +210,25 @@ export function nextRound(room, now, random = Math.random) {
   if (room.phase !== "reveal") return;
   room.round++;
   room.phase = "planning";
-  room.deadline = now + ROUND_MS;
+  room.deadline = roundDeadline(room, now);
   prepareComputerOrders(room, random);
+}
+export function roundDeadline(room, now) {
+  const seconds = room.solo ? (room.roundSeconds ?? 60) : 60;
+  return seconds === 0 ? null : now + seconds * 1000;
+}
+export function expectedNews(discards, hint, stockId) {
+  if (hint !== "all" && hint !== stockId) return 0;
+  const used = discards.filter((e) => e.target === hint);
+  return (
+    -used.reduce((sum, e) => sum + e.effect, 0) / Math.max(1, 6 - used.length)
+  );
 }
 // Only public information enters the computer strategy, never the future deck or human drafts.
 export function computerOrder(stocks, discards, hint, player, round, random) {
   const live = stocks.filter((s) => !s.delisted);
   if (!live.length) return { ...HOLD };
-  const expected = (id) => {
-    const relevant = discards.filter(
-      (e) => e.target === id || e.target === "all",
-    );
-    const sum = relevant.reduce((n, e) => n + e.effect, 0);
-    return -sum / Math.max(1, 12 - relevant.length);
-  };
+  const expected = (id) => expectedNews(discards, hint, id);
   const candidates = live.map((s) => ({
     stock: s,
     outlook: expected(s.id),
@@ -267,10 +253,10 @@ export function computerOrder(stocks, discards, hint, player, round, random) {
   if (stock.price >= 25 && player.holdings[stock.id] > 0) action = "sell";
   const reserve = round < 10 ? 20 : 0;
   const maxBuy = Math.min(
-    3,
+    MAX_TRADE,
     Math.floor(Math.max(0, player.cash - reserve) / stock.price),
   );
-  const maxSell = Math.min(3, player.holdings[stock.id]);
+  const maxSell = Math.min(MAX_TRADE, player.holdings[stock.id]);
   let quantity = action === "buy" ? maxBuy : action === "sell" ? maxSell : 1;
   if (quantity < 1) {
     action = "hold";
@@ -340,6 +326,8 @@ export function publicRoom(room, viewerId, connected = []) {
     discards,
     recaps,
     solo: Boolean(room.solo),
+    roundSeconds: room.solo ? (room.roundSeconds ?? 60) : 60,
+    revision: room.revision || 0,
     hint: phase === "planning" ? room.deck[discards.length].target : null,
     serverTime: Date.now(),
     viewerId,
@@ -354,6 +342,9 @@ export function publicRoom(room, viewerId, connected = []) {
       isComputer: Boolean(p.isComputer),
       connected: p.isComputer || connected.includes(p.id),
       score: portfolio(p, stocks),
+      lastRoundChange:
+        recaps.at(-1)?.settlements?.find((s) => s.playerId === p.id)?.delta ??
+        null,
       ...(p.id === viewerId ? { draft: p.draft } : {}),
     })),
   };

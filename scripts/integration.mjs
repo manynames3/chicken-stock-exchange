@@ -44,6 +44,12 @@ await command(1, { type: "start" }, 400);
 for (let i = 0; i < 4; i++)
   state = (await command(i, { type: "ready", ready: true })).room;
 state = (await command(0, { type: "start" })).room;
+for (const body of [
+  { type: "timer", seconds: 0 },
+  { type: "pause" },
+  { type: "restart" },
+])
+  await command(0, body, 400);
 const sockets = await Promise.all(
   tokens.slice(0, 2).map(
     (token) =>
@@ -144,6 +150,59 @@ assert.equal(state.phase, "planning");
 assert.equal(state.match, 2);
 assert.equal(state.players[1].isComputer, true);
 assert.equal(state.players[1].protections, 2);
+const invalid = await command(
+  0,
+  { type: "draft", order: { action: "sell", stock: "coop", quantity: 3 } },
+  400,
+);
+assert.equal(invalid.error, "NOT_ENOUGH_SHARES");
+state = (
+  await command(0, {
+    type: "draft",
+    lock: true,
+    order: { action: "sell", stock: "coop", quantity: 2 },
+  })
+).room;
+assert.equal(state.players[0].holdings.coop, 0);
+assert.equal(state.players[0].cash, 120);
+assert.equal(state.recaps[0].settlements.length, 2);
+state = (await command(0, { type: "skip" })).room;
+const before = structuredClone(state.players[0]);
+const oversell = await command(
+  0,
+  {
+    type: "draft",
+    lock: true,
+    order: { action: "sell", stock: "coop", quantity: 1 },
+  },
+  400,
+);
+assert.equal(oversell.error, "NOT_ENOUGH_SHARES");
+state = (await request(`/api/rooms/${code}/state`, null, tokens[0])).room;
+assert.deepEqual(state.players[0], before);
+state = (await command(0, { type: "timer", seconds: 0 })).room;
+assert.equal(state.deadline, null);
+state = (await command(0, { type: "pause" })).room;
+assert.equal(state.phase, "paused");
+assert.equal(state.deadline, null);
+state = (await command(0, { type: "resume" })).room;
+assert.equal(state.phase, "planning");
+assert.equal(state.deadline, null);
+await command(0, { type: "timer", seconds: 17 }, 400);
+state = (await command(0, { type: "timer", seconds: 120 })).room;
+assert.ok(state.deadline - Date.now() > 118000);
+state = (await command(0, { type: "restart" })).room;
+assert.equal(state.match, 3);
+assert.equal(state.round, 1);
+assert.equal(state.players[0].cash, 100);
+assert.equal(state.players[0].holdings.coop, 2);
+state = (
+  await command(0, {
+    type: "draft",
+    order: { action: "buy", stock: "coop", quantity: 5 },
+  })
+).room;
+assert.equal(state.players[0].draft.quantity, 5);
 console.log(
-  `PASS: ${base} — full multiplayer and computer matches, privacy, WebSockets, invalid actions, reconnect and rematches (${code})`,
+  `PASS: ${base} — full multiplayer and computer matches, privacy, WebSockets, oversell rejection, solo pause/resume/timers/restart and rematches (${code})`,
 );

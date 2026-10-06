@@ -9,6 +9,10 @@ A bilingual stock-market board game using the supplied chicken artwork and physi
 
 Enter a name and choose **Play vs computer**, or **Create a room** and share the invitation. The 한국어 / English button switches languages. Refreshing on the same browser restores your seat. Seats are device-local; clearing browser storage removes your reconnect token.
 
+Solo games offer 60-second, 120-second, or untimed rounds. **Exit to menu** pauses a solo match and **Resume previous table** restores it, including the saved order. **Restart** begins a fresh match. Multiplayer games continue when a player returns to the menu; their saved seat can reconnect.
+
+The trade preview shows exact cash and share changes. Quantity buttons are limited by available cash or owned shares, and selling is disabled for a selected stock with zero holdings. The saved-order box separately shows what will execute; unsaved changes never replace it. Chart lines use distinct patterns and markers, a labeled current-price column, a round inspector, and played/full-round views.
+
 ## Rules
 
 Each player begins with 100 coins, two shares of each of four stocks, and two roast-chicken protection cards. All stocks begin at 10 coins.
@@ -16,7 +20,7 @@ Each player begins with 100 coins, two shares of each of four stocks, and two ro
 Each of 12 rounds:
 
 1. See the upcoming news target. Its direction and magnitude remain secret.
-2. Within 60 seconds, buy or sell 1–3 shares of one stock, or hold. Optionally protect one owned stock. Valid drafts are saved; locking is final. All locked players resolve early.
+2. Within 60 seconds (or the solo timer setting), buy or sell 1–5 shares of one stock, or hold. Optionally protect one stock held after trading. Valid drafts are saved; locking is final. All locked players resolve early.
 3. Execute every order at the same pre-news prices. The bank has unlimited shares. No borrowing or short selling.
 4. Reveal news (−3, −2, −1, +1, +2, or +3), add demand (net buys +1, net sells −1, balanced 0), and add the shared dice result (red wins +1, blue wins −1, tie 0).
 5. Clamp prices to 0–30. For protected shares held after trading, pay the actual price decrease multiplied by shares. The protection card is spent even when the price rises.
@@ -43,15 +47,19 @@ Open http://localhost:8787. Wrangler runs the frontend, Worker, WebSockets, and 
 npm test
 npm run test:integration
 node scripts/browser-check.mjs
+node scripts/order-regression.mjs
 node scripts/timer-check.mjs
+node scripts/balance.mjs
 ```
 
 Run the dev server before integration, browser, or deadline checks. Install Chromium for browser verification with `npx playwright install chromium` if needed.
 
-- Unit tests cover settlement, protection, caps, delisting, privacy, the deck, match completion, and computer legality.
-- Integration tests run a full four-player match, authenticated WebSockets, reconnect, and rematch.
+- Unit tests cover shared client/server validation, settlement, protection, caps, delisting, privacy, the deck, match completion, conditional news estimates, and computer legality.
+- Integration tests run full multiplayer and computer matches, authenticated WebSockets, zero-share rejection, reconnect, solo pause/resume/timers/restart, and rematches.
 - Browser checks exercise solo trading, bilingual rules, multiplayer, and responsive widths.
+- The order regression checks unavailable sales, delayed draft requests, exact saved orders, five-share trades, and solo controls.
 - The deadline check waits for the real 60-second timeout without an open browser.
+- The seeded simulation writes its reproducible results and limitations to [docs/balance.md](docs/balance.md).
 
 Set `GAME_TEST_URL` or `GAME_BROWSER_URL` to verify a deployed environment. Scripts create temporary game rooms, which expire automatically.
 
@@ -80,10 +88,12 @@ Room creation is limited to 30 rooms per IP per hour. Rooms expire after 24 hour
 - `src/rules.js`: rules and public-information computer strategy.
 - `src/worker.js`: API, room persistence, WebSocket delivery, and alarms.
 - `public/app.js`, `public/style.css`: bilingual responsive game UI.
+- `public/order.js`: shared quantity bounds and order validation used by the browser and server.
+- `public/board.js`: chart rendering with accessible round inspection.
 - `public/assets/`: supplied character card and generated physical-game concept.
 - `test/`, `scripts/`: reproducible validation and build scripts.
 
-The initial balancing values follow the agreed design. They have functional tests; match length and competitive balance still need human playtesting. This is a fictional board game, not a brokerage integration.
+The five-share limit preserves one stock per round and prevents unlimited position swings. Functional checks and a small seeded balance probe are included; match length and competitive balance still need human playtesting. This is a fictional board game, not a brokerage integration.
 
 ## Artwork
 
