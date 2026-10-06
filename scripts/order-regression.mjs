@@ -96,7 +96,7 @@ try {
   await page.locator("#chart-round").selectOption("0");
   assert.match(
     await page.locator(".chart-inspection").textContent(),
-    /COOP 10/,
+    /COOP \$10/,
   );
   page.once("dialog", (dialog) => dialog.accept());
   await page.locator("#restart-solo").click();

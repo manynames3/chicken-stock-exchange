@@ -137,30 +137,12 @@ try {
     );
   }
   await page.locator("#lock-order").click();
-  await page.locator('[data-reveal-stage="0"]').waitFor();
-  assert.equal(await page.locator(".reveal-news").isVisible(), false);
-  assert.equal(
-    await page.locator("#trade-stock").count(),
-    0,
-    "No final price in a stale trade panel during the reveal",
-  );
-  assert.equal(
-    await page.locator(".journal-round").count(),
-    0,
-    "The journal does not skip ahead of the first reveal",
-  );
-  assert.equal(
-    await page.locator(".player-meta").first().isVisible(),
-    false,
-    "Final cash is shown at settlement",
-  );
-  await page.locator('[data-reveal-stage="1"]').waitFor();
-  assert.equal(await page.locator(".reveal-news").isVisible(), true);
-  assert.equal(await page.locator(".reveal-dice").isVisible(), false);
-  await page.locator('[data-reveal-stage="2"]').waitFor();
-  assert.equal(await page.locator(".reveal-dice").isVisible(), true);
-  await page.locator("#skip-animation").click();
   await page.locator('[data-reveal-stage="4"]').waitFor();
+  assert.equal(await page.locator(".reveal-news").isVisible(), true);
+  assert.equal(await page.locator(".reveal-dice").isVisible(), true);
+  assert.equal(await page.locator("#trade-stock").isDisabled(), true);
+  assert.equal(await page.locator(".journal-round").count(), 1);
+  assert.equal(await page.locator(".player-meta").first().isVisible(), true);
   assert.equal(await page.locator(".recap-panel .price-equation").count(), 4);
   await page.locator("#skip-reveal").click();
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -246,7 +228,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: optional isolated tutorial, Hard CPU, keyboard focus, live draft preservation, mobile ordering, staged/reduced-motion reveals, finale and computer lobby.",
+    "PASS: optional isolated tutorial, Hard CPU, keyboard focus, live draft preservation, mobile ordering, immediate/reduced-motion results, finale and computer lobby.",
   );
 } finally {
   await browser.close();

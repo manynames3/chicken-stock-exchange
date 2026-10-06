@@ -20,7 +20,7 @@ export function renderChart(room, view, lang) {
   const y = (price) => bottom - (price / 30) * (bottom - top);
   let grid = "";
   for (let price = 0; price <= 30; price += 5)
-    grid += `<line x1="${left}" x2="${right}" y1="${y(price)}" y2="${y(price)}" class="grid-line ${price === 0 ? "zero" : ""}"/><text x="25" y="${y(price) + 5}" text-anchor="end">${price}</text>`;
+    grid += `<line x1="${left}" x2="${right}" y1="${y(price)}" y2="${y(price)}" class="grid-line ${price === 0 ? "zero" : ""}"/><text x="25" y="${y(price) + 5}" text-anchor="end">$${price}</text>`;
   for (let round = 0; round <= maxRound; round++)
     grid += `<line x1="${x(round)}" x2="${x(round)}" y1="${top}" y2="${bottom}" class="grid-line vertical"/><text x="${x(round)}" y="284" text-anchor="middle">${round}</text>`;
   const labels = room.stocks
@@ -45,7 +45,7 @@ export function renderChart(room, view, lang) {
     labels
       .map(
         ({ stock: s, index: i, y: labelY }) =>
-          `${stockMarker(i, right + 35, labelY - 1, s.color, 4)}<text x="${right + 46}" y="${labelY + 5}" class="endpoint-label">${s.ticker} ${s.price}</text>`,
+          `${stockMarker(i, right + 35, labelY - 1, s.color, 4)}<text x="${right + 46}" y="${labelY + 5}" class="endpoint-label">${s.ticker} $${s.price}</text>`,
       )
       .join("");
   const regions = Array.from({ length: completed + 1 }, (_, round) => {

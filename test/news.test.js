@@ -41,5 +41,5 @@ test("the paper marks delisted targets and escapes stock names", () => {
   assert.match(paper, /inactive-target/);
   assert.match(paper, /Delisted stocks stay at zero/);
   assert.ok(!paper.includes("<script>"));
-  assert.match(paper, /\+3/);
+  assert.match(paper, /\+\$3/);
 });

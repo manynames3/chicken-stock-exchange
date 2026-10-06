@@ -3512,3 +3512,279 @@ a:focus-visible {
     font-size: 0.62rem;
   }
 }
+
+/* Permanent round sections: content changes in place, without page movement. */
+.players-strip .player-card {
+  min-height: 120px;
+}
+.game-top h1 {
+  min-height: 1.15em;
+}
+.trading-panel {
+  min-height: 780px;
+}
+.trading-panel .news-hint {
+  min-height: 116px;
+}
+.order-summary {
+  min-height: 95px;
+}
+.recap-heading {
+  min-height: 44px;
+  margin-bottom: 12px;
+}
+.recap-status {
+  font-size: 0.73rem;
+  color: var(--muted);
+  text-align: right;
+}
+.news-slot {
+  height: 640px;
+  margin-bottom: 20px;
+}
+.news-slot .newspaper {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.news-slot .newspaper-front {
+  flex: 1;
+}
+.news-slot .newspaper-footer {
+  margin-top: auto;
+}
+.round-details {
+  min-height: 650px;
+}
+.empty-round-details {
+  padding: 25px 15px;
+  background: #f3eee1;
+  border: 1px dashed #c7bea7;
+}
+.empty-round-details p {
+  max-width: 50em;
+  line-height: 1.65;
+}
+.reveal-news,
+.reveal-dice,
+.reveal-prices,
+.reveal-settlement,
+.is-reveal .die {
+  animation: none;
+}
+.reveal-dice {
+  padding: 18px;
+  background: #fff4c9;
+  border: 1px solid #dbcc9a;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+.reveal-dice .dice-row {
+  margin: 0;
+}
+.reveal-dice .dice-row > div {
+  display: grid;
+  gap: 5px;
+}
+.reveal-dice .dice-row b {
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+.reveal-dice .dice-row strong {
+  font-size: 1.1rem;
+}
+.reveal-dice .dice-row span,
+.dice-rule {
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+.dice-rule {
+  margin: 12px 0 0;
+}
+#skip-reveal,
+.next-round-placeholder {
+  min-height: 44px;
+  margin-top: 12px;
+}
+.next-round-placeholder {
+  padding: 12px 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+@media (min-width: 741px) and (max-width: 1000px) {
+  .news-slot {
+    height: 930px;
+  }
+}
+@media (max-width: 740px) {
+  .players-strip .player-card {
+    min-height: 160px;
+  }
+  .trading-panel {
+    min-height: 710px;
+  }
+  .trading-panel .news-hint {
+    min-height: 100px;
+  }
+  .news-slot {
+    height: 900px;
+  }
+  .round-details {
+    min-height: 950px;
+  }
+  .recap-heading {
+    align-items: start;
+  }
+  .recap-status {
+    max-width: 145px;
+    font-size: 0.65rem;
+  }
+  .reveal-dice {
+    padding: 12px;
+  }
+  .reveal-dice .dice-row {
+    flex-wrap: wrap;
+  }
+  .reveal-dice .dice-row > div {
+    flex: 1 1 135px;
+  }
+}
+
+/* Holdings are public and visible without opening a disclosure. */
+.player-holdings .holding-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 5px 0;
+}
+.player-holdings .holding-row > span {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--stock-color);
+  padding: 6px;
+  border-radius: 5px;
+  text-align: center;
+  display: grid;
+  gap: 3px;
+  background: #fffdf5;
+}
+.player-holdings small {
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+.player-holdings b {
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.stock-tile .owned-shares {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.owned-shares b {
+  font-size: 1.65rem;
+  line-height: 1.2;
+}
+.owned-shares span {
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+@media (max-width: 740px) {
+  .player-holdings .holding-row {
+    gap: 3px;
+    padding-bottom: 0;
+  }
+  .player-holdings .holding-row > span {
+    padding: 4px 1px;
+  }
+  .player-holdings small {
+    font-size: 0.5rem;
+  }
+  .player-holdings b {
+    font-size: 1rem;
+  }
+  .stock-tile .owned-shares {
+    margin-top: 7px;
+    padding-top: 6px;
+    gap: 5px;
+  }
+  .owned-shares b {
+    font-size: 1.5rem;
+  }
+  .owned-shares span {
+    font-size: 0.66rem;
+  }
+}
+
+.brand {
+  gap: 9px;
+}
+.brand-chicken {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex: none;
+}
+.brand-title {
+  display: grid;
+  gap: 4px;
+  font-weight: 950;
+  font-size: 0.9rem;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+}
+.brand-title > span:first-child {
+  color: #8b6417;
+}
+.brand-title > span:last-child {
+  color: #236dad;
+}
+@media (max-width: 740px) {
+  .brand {
+    gap: 5px;
+  }
+  .brand-chicken {
+    width: 43px;
+    height: 43px;
+  }
+  .brand-title {
+    font-size: 0.65rem;
+    gap: 3px;
+  }
+}
+.newspaper-footer {
+  width: 100%;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+.reveal-dice .dice-row > .die {
+  display: grid;
+  flex: 0 0 44px;
+  gap: 4px;
+  width: 44px;
+  height: 44px;
+}
+.listing-placeholder {
+  visibility: hidden;
+}
+.stock-tile:disabled {
+  opacity: 1;
+}
+.stock-tile.delisted {
+  opacity: 0.65;
+}
+.round-details {
+  height: 650px;
+  min-height: 0;
+  overflow-y: auto;
+}
+@media (max-width: 740px) {
+  .round-details {
+    height: 950px;
+  }
+}

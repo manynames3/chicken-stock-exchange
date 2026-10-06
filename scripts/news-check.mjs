@@ -90,21 +90,14 @@ try {
   await page.locator("#play-solo").click();
   await page.locator("#lock-order:not([disabled])").waitFor();
   await page.locator("#lock-order").click();
-  await page.locator('[data-reveal-stage="1"]').waitFor();
+  await page.locator("#next-round-control").waitFor();
   assert.equal(await page.locator(".newspaper").isVisible(), true);
-  assert.equal(await page.locator(".reveal-dice").isVisible(), false);
+  assert.equal(await page.locator(".reveal-dice").isVisible(), true);
   assert.equal(
     await page.evaluate(() => window.__soundStats.oscillators),
     0,
     "Muted news schedules no audio",
   );
-  await page.waitForTimeout(1200);
-  assert.equal(
-    await page.locator(".reveal-dice").isVisible(),
-    false,
-    "Readers get time for the headline before dice",
-  );
-  await page.locator("#skip-animation").click();
   await page.locator("#replay-news-sound").click();
   assert.equal(
     await page.locator("#sound-button").getAttribute("aria-pressed"),
@@ -124,13 +117,6 @@ try {
     timeout: 1000,
   });
   await page.locator("#skip-reveal").click();
-  await page.locator("#read-last-news").waitFor();
-  await page.locator("#read-last-news").click();
-  await page.waitForFunction(
-    () =>
-      document.querySelector(".newspaper").getBoundingClientRect().top <
-      innerHeight - 100,
-  );
   const samples = await page.evaluate(async () => {
     const { STOCKS } = await import("/game.js");
     return {
@@ -190,13 +176,12 @@ try {
   );
   await page.locator("#lock-order:not([disabled])").waitFor();
   await page.locator("#lock-order").click();
-  await page.locator(".reveal-news:not([hidden])").waitFor();
+  await page.locator("#next-round-control").waitFor();
   assert.equal(
     await page.evaluate(() => window.__soundStats.oscillators),
     mutedBefore,
     "Mute also applies to subsequent news",
   );
-  await page.locator("#skip-animation").click();
   await page.locator("#skip-reveal").click();
   await page.locator("#sound-button").click();
   const enabledBefore = await page.evaluate(
@@ -204,7 +189,7 @@ try {
   );
   await page.locator("#lock-order:not([disabled])").waitFor();
   await page.locator("#lock-order").click();
-  await page.locator('[data-reveal-stage="1"]').waitFor();
+  await page.locator("#next-round-control").waitFor();
   const automatic = await page.evaluate(() => window.__soundStats.oscillators);
   assert.ok(
     automatic - enabledBefore >= 7,
@@ -218,7 +203,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: bilingual newspaper, reading interval, mobile widths, repeatable sound previews, live replay, immediate mute and future muted rounds.",
+    "PASS: bilingual newspaper, immediate results, mobile widths, repeatable sound previews, live replay, immediate mute and future muted rounds.",
   );
 } finally {
   await browser.close();
