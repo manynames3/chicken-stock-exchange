@@ -917,7 +917,7 @@ body.is-playing #app {
   border-radius: 9px 5px 12px 7px;
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(2px 5px 5px #30271825);
+  filter: drop-shadow(2px 5px 5px #20202020);
 }
 .held-paper::before {
   content: "";
@@ -933,12 +933,12 @@ body.is-playing #app {
     1.1% 83%, .2% 67%, .8% 51%, 0 36%, .9% 20%, .3% 5%
   );
   background:
-    linear-gradient(91deg, transparent 46%, #c9bda517 49%, #fffef389 50%, #bdae9228 50.8%, transparent 54%),
-    linear-gradient(174deg, transparent 28%, #b6a58a10 29%, #fffdf060 29.8%, transparent 31%),
-    radial-gradient(ellipse at 2% 85%, #cfbd9625, transparent 38%),
-    radial-gradient(ellipse at 95% 4%, #fffef4, transparent 40%),
-    repeating-linear-gradient(0deg, #735c3405 0 1px, transparent 1px 4px),
-    #fff8e6;
+    linear-gradient(91deg, transparent 46%, #9090900c 49%, #ffffff80 50%, #77777718 50.8%, transparent 54%),
+    linear-gradient(174deg, transparent 28%, #88888808 29%, #ffffff55 29.8%, transparent 31%),
+    radial-gradient(ellipse at 2% 85%, #b6b6b618, transparent 38%),
+    radial-gradient(ellipse at 95% 4%, #ffffff, transparent 40%),
+    repeating-linear-gradient(0deg, #00000003 0 1px, transparent 1px 4px),
+    #f5f5f2;
 }
 .held-paper::after {
   content: "";
@@ -952,8 +952,8 @@ body.is-playing #app {
   border-radius: 2px 5px 3px 9px;
   clip-path: polygon(0 0, 100% 100%, 0 92%);
   transform: rotate(7deg);
-  background: linear-gradient(135deg, #b4a48430, #e5d8b8 46%, #fffdf0 53%, #f4e9cd);
-  box-shadow: -2px 3px 4px #5b462d26;
+  background: linear-gradient(135deg, #88888825, #d7d7d2 46%, #ffffff 53%, #ecece8);
+  box-shadow: -2px 3px 4px #30303020;
 }
 @media (max-width: 740px) {
   .held-paper::after {
@@ -1058,3 +1058,12 @@ body.is-playing #trade-timer:not(.counting) {
   .compact-table .chart-inspection > strong { grid-column: 1 / -1; }
   .compact-table .chart-inspection > span { white-space: nowrap; }
 }
+
+/* Neutral newsprint, with colored news badges kept as clear signals. */
+.held-paper { color: #292929; }
+.held-paper .newspaper-reason,
+.held-paper .newspaper-impact { border-top-color: #bfbfba; }
+.held-paper .newspaper-footer { border-color: #949490; }
+.held-paper .newspaper-footer p,
+.held-paper .newspaper-byline,
+.held-paper .news-effect-note { color: #62625e; }
