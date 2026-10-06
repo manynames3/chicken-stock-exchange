@@ -48,9 +48,9 @@ try {
   assert.equal(await page.locator('[role="tab"]').count(), 0, "No section tabs are needed on the main game screen");
   assert.equal(await page.locator('.compact-table > .panel:visible').count(), 3);
   await page.evaluate(() => scrollTo(0, 0));
-  const phoneNews = await page.locator("#table-news").boundingBox();
-  const phoneMarket = await page.locator("#table-market").boundingBox();
-  assert.ok(phoneNews.y < phoneMarket.y, "The newspaper comes first on phones");
+  await page.locator("#table-news").waitFor({ state: "visible" });
+  const phoneBounds = await bounds();
+  assert.ok(phoneBounds["#table-news"].y < phoneBounds["#table-market"].y, "The newspaper comes first on phones");
   assert.ok(await page.locator("#table-news h2").evaluate(el => el.getBoundingClientRect().bottom < innerHeight), "The news headline is on the main viewport");
   await page.screenshot({ path: "screenshots/compact-table-phone-news.png" });
   await page.locator('[data-action="buy"]').click();
