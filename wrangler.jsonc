@@ -5,9 +5,15 @@
   "compatibility_date": "2026-10-06",
   "account_id": "b559c9134157cba7e948e7f78a874a2e",
   "workers_dev": true,
-  "durable_objects": { "bindings": [{ "name": "ROOMS", "class_name": "GameRoom" }] },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "GameRoom" }],
+  },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GameRoom"] }],
-  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+  },
   "vars": { "FRONTEND_ORIGIN": "https://chicken-stock-exchange.pages.dev" },
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
 }

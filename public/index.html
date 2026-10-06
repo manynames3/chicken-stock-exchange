@@ -1,23 +1,47 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffdb40">
-  <meta name="description" content="A chicken-powered stock market board game. Trade, read the news, and play with 2–4 friends in a private room.">
-  <title>주식 · Chicken Stock Exchange</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/style.css">
-  <script type="module" src="/app.js"></script>
-</head>
-<body>
-  <header class="topbar">
-    <a href="/" class="brand" aria-label="Chicken Stock Exchange home"><span class="brand-mark">주식</span><span>CHICKEN<br>STOCK EXCHANGE</span></a>
-    <div class="header-controls"><span id="connection" role="status"></span><button id="rules-button" class="quiet">How to play</button><button id="language" class="language" aria-label="Change language">한국어</button></div>
-  </header>
-  <main id="app"></main>
-  <div id="toast" role="status" aria-live="polite"></div>
-  <dialog id="rules-dialog" aria-labelledby="rules-title"><div class="dialog-heading"><h2 id="rules-title"></h2><button id="close-rules" class="icon-button" aria-label="Close">✕</button></div><div id="rules-content"></div><button id="rules-done" class="primary full"></button></dialog>
-  <footer><span>주식 · Chicken Stock Exchange</span><span id="footer-copy">Fictional stocks. Real friends.</span></footer>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#ffdb40" />
+    <meta
+      name="description"
+      content="A chicken-powered stock market board game. Trade, read the news, and play with 2–4 friends in a private room."
+    />
+    <title>주식 · Chicken Stock Exchange</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a href="/" class="brand" aria-label="Chicken Stock Exchange home"
+        ><span class="brand-mark">주식</span
+        ><span>CHICKEN<br />STOCK EXCHANGE</span></a
+      >
+      <div class="header-controls">
+        <span id="connection" role="status"></span
+        ><button id="rules-button" class="quiet">How to play</button
+        ><button id="language" class="language" aria-label="Change language">
+          한국어
+        </button>
+      </div>
+    </header>
+    <main id="app"></main>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="rules-dialog" aria-labelledby="rules-title">
+      <div class="dialog-heading">
+        <h2 id="rules-title"></h2>
+        <button id="close-rules" class="icon-button" aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <div id="rules-content"></div>
+      <button id="rules-done" class="primary full"></button>
+    </dialog>
+    <footer>
+      <span>주식 · Chicken Stock Exchange</span
+      ><span id="footer-copy">Fictional stocks. Real friends.</span>
+    </footer>
+  </body>
 </html>
